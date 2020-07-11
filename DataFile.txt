@@ -1,0 +1,46 @@
+
+====
+~~NameStart(John Hopkins)
+-----
+Date of Birth: "15thAugust 1999"
+Address{330, Country Drive, Sacramento)
+theState California verified successfully
+testCountryUSA
+
+Notes(
+John F Kennady was a popular president
+He is so famous.
+)
+
+~~FirstName-Sam
+LastNameJohnny
+-----
+Date of Birth: 15thAugust,2016
+=====
+Address{330, Country Drive, Sacramento)
+=====
+Place of Birth San Francisco
+
+testCountryUSA
+
+~~FirstName-Sagar
+LastNameJohnny
+-----
+Date of Birth: 15thAugust,2016
+=====
+Address{330, Country Drive, Sacramento)
+=====
+Place of Birth San Francisco
+nationality: indian
+testCountryUSA
+
+~~
+complete name:(sagar sehgal)
+-----
+Date of Birth: 15thAugust,2016
+=====
+Address{330, Country Drive, Sacramento)
+=====
+Place of Birth San Francisco
+position: india
+testCountryUSA
