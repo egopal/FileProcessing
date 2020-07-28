@@ -1,0 +1,1089 @@
+================================
+NOTES
+================================
+
+	Instead of relative path, we will use actual path with the following changes:
+
+	a)  Put a dirpath for srcRootPath, what I mean this that the root dir for the srcDir is like "C:\Projects\workspacePython32\BUSSERV1\Templates"
+	b)  Put a dirPath for targetRootPath "C:\Projects\workspacePython32\BUSSER1\Clone"
+	c)  Put a dirPath for Logs as logRootPath "C:\Projects\workspacePython32\BUSSERV1\"
+	Use the path in and update the code to do the work
+	
+	Templates files are source files and the files that are being worked are in UpgradedScripts folder
+		
+    d)  The targetDir should be placed inside the targetRootPath
+
+	e)	The template backup should be placed inside Template dir itself as a .zip file
+		So, it will be AIP_Mem_Profile.zip
+
+	f) 	The log file should appear inside logRootPath
+	
+	Steps will be:
+	
+	1) Get the existing List Files/Text
+	2) Make Changes
+	3) Now Get the Latest Changes/Text
+
+
+======================================
+INITIALIZE STEP
+======================================
+
+0) Define
+
+	Para 1) Templates for BUSSERV
+
+		if (container == Busserv1)
+			if ((AuthURL == "/api/bsc/gateway/member/authenticate/profile/v2") or (AuthFileName == "AIP_Mem_MemAuth"))
+				TemplateFileName = AIP_Mem_Profile
+				TemplateDirPath = \Template\AIP_Mem_Profile
+				AuthFileName == "AIP_Mem_MemAuth"				
+			if (AuthURL == )
+				TemplateFileName = 
+			else
+				TemplateFileName = AIP_Mem_Profile
+				TemplateDirPath = \Template\AIP_Mem_Profile
+		if (container == Busserv2)
+			if (AuthURL == )
+				TemplateFileName = 
+			if (AuthURL == )
+				TemplateFileName = 
+								
+			
+	Para 2) DataDictionary (KeyPairValue) Standard Structure from the TemplateDir
+	
+			Read the file
+			Key pair value
+
+			From AIP_Automation
+			From AIP_Env.dat
+			From AIP_Service.dat
+			From AIP_data_ F|W.dat
+   
+			Yaml format may have better approach
+
+			You can deal it as a file/txt or csv file if modification of key (not value) is easy
+   
+1) From CurrentDir
+	
+	Go to Root DIR "c:\Projects":
+	   Go to Main dir "\AIP\"
+	   Go to Group dir "KLO" or "Projects"
+	   Go to Container "Busserv*" or "AIPLRS"
+	   Look for ScriptForReview dir in each sub-dir
+	   Go inside the ScriptForReview folder
+	   There will be multiple scripts dir
+	   Pick up the first one, will work one at a time.
+	   Copy the scripts folder to ../UpgradedScripts Folder
+	   PERFORM COPY DIR 
+	   shutil.copytree(templateDir, UpgradedScriptsDir)
+	   This is the CurrentScript.
+
+	   The script copied and in UpgradedScripts Folder is a UpgradedScriptsFolder.
+	   The path contains the container name  BUSSERV or AIPLRS
+	   Get the Container name from the path
+
+2) 	Create a LogFile Readme.txt file inside the UpgradedScripts Folder\CurrentScripts 
+		This will have upgrade notes:
+		Whenever the file is upgraded, detail log will be written to this Readme.txt file as an append at the top with date+timestamp with the VersionNumNew and the TemplateScriptName
+		Separator will be double dotted lines at the end.
+		This File will be created inside every script, closed and renamed.
+		So for every script, you will create a new log and close it.		
+
+   
+3)	Get the AuthURL - In three ways
+	    In CurrentScriptsDir. 
+		Go to AIP_Automation.dat file if it exists
+			Get value from the key "AuthEnabled" in AIP_Automation.dat" file.
+			If the File exists, and If "AuthEnabled" is yes, then get the value for the key AuthFileName
+			If no value exists, then read the AIP_Auth_*.h file
+			The following line will have AuthServiceURL, get the URL
+			OR
+			Use Delimitor startsWith [1] and EndsWith[2]
+			You will get a set of text in lines
+			Loop the lines and look for the line containing the text "AIP_AuthServer" 	
+			  lr_save_string("/api/bsc/gateway/member/authenticate/profile/v2","AIP_AuthServiceURL");
+			Get the URL value, which is https://esbhdp-api.bsc.bscal.com
+			If the URL in this does not match with AuthURL
+			Print "Auth URL Does not Match and Print .h file :"+ hFile +" the AuthURL is :"+  AuthURL  
+			If AuthURL or AuthServiceURL or AuthService is not Found, then use the default template folder from Templates folder in the same container.
+
+			
+		Go to AIP_Env.dat file if it exists
+			Get value for the key "AuthService" or AUthServiceURL
+			If the value exist, then get the templatefilename from Step 0)
+			This is the templatefilename to be used to update the scripts in /UpgradedScripts Folder
+		
+		Go to AIP_Auth.dat file if it exists
+			Get value for the key "AuthService" or AUthServiceURL
+		
+	
+	 Read AIP_Auth_MemAuth.h file
+	
+4)	Load all key and values from the following files Step 0) Para 2
+		From AIP_Automation
+		From AIP_Env.dat
+		From AIP_Service.dat
+		From AIP_data_ F|W.dat
+ 
+		Also update the value for key AuthEnabled=No in AIP_Automation.dat file.  
+
+5)  Get the Existing Script Version of the Template File
+		Go To TemplateDir and read AIP_Automation.dat File, or DataDictory for AIP_Automation.dat
+			Get Value for the key "Version"
+			This is the latest version => VersionNumNew
+		
+		Go To /UpgradedScripts Folder and Go to CurrentScript
+			Read AIP_Automation.dat File if the file exists
+			Get Value for the key "Version"
+			This is the version of the scripts, VersionFound = versionNumber
+		
+
+6)  If the VersionFound == 2020_01, then do the following
+		{
+			this will help to invoke few required call instead of everything
+		}
+	else Ignore and continue with all the steps
+	    
+		
+
+========================================
+FILE CLEANUP AND FILE INFO
+========================================
+
+7) DELETE the currentScripts Dir
+
+	Delete .idx files
+	Delete .bak files
+	Remove *.xml files
+	 .pickle
+
+	Delete result1 folder
+
+8) Now Back up the currentScripts Dir using zip
+
+9) Print Output of the following to the Readme.txt
+   From TemplateFolder and From CurrentScriptsDir (Template File details first, followed by CurrentScriptDir0)
+	List of c files
+	List of h files
+	List of dat Files
+
+10) Print the content of the following if the file exist to ReadMe.txt
+   From TemplateFolder and From CurrentScriptsDir (Template File details first, followed by CurrentScriptDir0)
+	AIP_Autom0ation.dat
+	AIP_Auth.dat
+	AIP_Env.dat
+	AIP_Service.dat in template and if the same file does nor exist in CurrentScriptDir then it will be AIP_ScriptName.dat
+	File ending _F|W.dat column name only
+	vuser_init.c 
+	Vuser_Action (Each Section)
+
+11) Delete
+	Delete the .h files IF FOUND
+	Delete Customcode.c IF FOUND
+
+12)  Copy/Replace the following Files from Template Dir to CurrentDir
+    AIP_Initialize.h
+    AIP_ResponseAnalysis.h
+    globals.h
+ 	Utils.c
+    Replace vuser_init.c file
+	if (Container == BUSSERV1)
+		THEN COPY AIP_Auth_MemAuth.h FILE ALSO
+
+
+=====================================
+DAT FILE MODIFICATIONS
+=====================================
+a) Column Name change and order Rearrangement
+b) Data Change in line with above
+
+
+13) Define DAT file
+
+	For template File, Step 0) Para 2 may have this already
+	
+	1)  From CurrentDir, Read the content of AIP_Automation.dat File if the file exist. KeyPairValue or CSV file or dataParam
+		This data will contain current data for the script
+		If the file does not exist, copy the file from TemplateDir to CurrentDir, and the data are same as Step 0) Para 2
+		
+	3)  From CurrentDir, Read the content of AIP_Env.dat File if the file exist. KeyPairValue or CSV file or dataParam
+		This data will contain current data for the script
+		If the file does not exist, copy the file from TemplateDir to CurrentDir, and the data are same as Step 0) Para 2
+	
+	    Server Path should start with /
+
+	3)  From CurrentDir, Read the content of AIP_Services.dat File if the file exist. KeyPairValue or CSV file or dataParam
+		This data will contain current data for the script
+		If the file does not exist, copy the file from TemplateDir to CurrentDir and the data are same as Step 0) Para 2
+		Read the content now.
+
+	    File Rename is required.
+		
+	4) 	From CurrentDir, Read the content of AIP_Auth.dat File if the file exist. KeyPairValue or CSV file or dataParam
+		This data will contain current data for the script
+		If the file does not exist, Log and Ignore.
+		
+
+ Print AIP_Auth.dat file
+   Delete the file
+
+
+14) Manipulation of AIP_Automation.DAT File
+
+	- mostly the format from template dir will be included in current dir, since this is newly craeted one.
+
+		The file content looks like below:
+		ScriptName,AuthFile,AuthEnabled,ProdVolume,ProdVolume_Dt,NFRVolume,NFR_SLA,ScriptFormat,ScriptActions,Memory,Version,ServiceComponentName,ProjectName,SourceSystem,TargetSystem
+		AIP_Mem_Profile,AIP_Auth_MemAuth,Yes,,,,2,Standard,S=Single,90000,2020_07,,e.g.WiseChoice,,
+
+		We will be updating the following data in Section 0, Para 2
+		Key = ScriptName,
+		  Value = CurrentDirName or a ModifiedName from Section 1
+		Key = AuthFile,
+		  Value = AIP_Mem_MemAuth from Section 3
+		Key = AuthEnabled,
+		  Value = Yes or No based on Section 3
+		Key = Version
+		  Value = VersionNumNew from Section 5
+		Key = ScriptActions
+		  Value = if there are multiple data rows in AIP_Services.dat File
+		Key = ProdVolume
+		  Value = 1000, default value. 
+		  When it is updated by ProdVolume, it will also have the Reference date (Splunk QII-2020)
+		NFRVolume= as it is by default
+		NFRSLA= as it is by default
+		Leave rest of them as it is
+		
+		Need to add additional key and column as defined below:
+		DBName, DBinstance
+		DENSDO1, DENODA
+		
+		After the insert, the column will be reordered as below
+		ScriptName,AuthFile,AuthEnabled,DBName,DBinstance,ProdVolume,ProdVolume_Dt,NFRVolume,NFR_SLA,ScriptFormat,ScriptActions,Memory,Version,ServiceComponentName,ProjectName,SourceSystem,TargetSystem
+		
+		We will write the final data later
+	
+15) Manipulation of AIP_Env.DAT File
+
+	- This file is an existing one so you will have data in files from both CurrentDir and TemplateDir
+	
+		TemplateFile content looks like below: (Section 0, Para 2)
+		Env,Server,ServerPath,ClientID,ClientSecret
+		Stage_DP,https://esbs01dp-api,/private/stage,11dbb0d2-2a57-4068-97fe-164dcbf52dc9,L3jL8cI3oK1sB4lO7wN4hU1gD6bY0oU8rC8fT5sP1eD8tQ8oJ7
+		
+		The file from CurrentDir contains this
+		Env,Server,ServerPath,AuthService,client_id,client_secret
+		Stage_DP,http://esbs01dp:8815,/stage,,,
+
+		MOSTLY THIS FILE CONTENT WILL NOT CHANGE, IF NEED BE,
+		
+		From the file from CurrentDir, Update the values for the AIP_Env.dat file (Section 0, para 2)
+		Key = Env,
+		  Value = Value of Env from CurrentDirName and
+		          the value is from ServiceUrl from AIP_Services
+				  if the value contains "bscedh1000"
+					then the value of Env is "APIConnect"
+				  if the value contains "esbhdp-api.bsc.bscal.com"
+					then the value of Env is "Stage_DP", this is default
+		Key = Server,
+		  Value = Value of Server from CurrentDirName
+		Key = ServerPath,
+		  Value = Value of ServerPath from CurrentDirName
+		Key = ClientID
+		  Value = Value of ClientID OR client_id from CurrentDirName
+		Key = ClientSecret
+		  Value = Value of ClientSecret OR client_secret from CurrentDirName
+		The other values in the existing file CurrentDir, need to be added as additional column key and value to the data set from template file:
+		In one file you can see
+		transid,	sessionid,	ipaddress
+		Insert them at the end if this key is found with values
+		
+		-Ensure the Column name has ClientID not ClientId or Client_id
+		-Ensure the Column name has ClientSecret not client_secret
+		-Remove ReleaseTest and Have Stage Related Info
+		-Remove the column with name AuthService
+		-To discuss - Do we need columns such as transid,	sessionid,	ipaddress
+		 If not, what shall we do?
+		 Can we move it to AIP_Custom_Data.dat? Is it related to env?
+
+		We will write the final data later
+
+
+16) Manipulation of AIP_Services.dat File
+
+	- This file is an existing one so you will have data in files from both CurrentDir and TemplateDir
+	
+		TemplateFile content looks like below: (Section 0, Para 2)
+		Container,ServiceName,OperationName,RequestType,DBOperation,ServiceURL,JSONFileName,TestMethodName
+		Busserv1,AIP_MPO_IFPRenewalsHmcQuestions,,POST,READ,/api/bsc/gateway/ifprenewals/hmc/questions/v1,AIP_MPO_IFPRenewalsHmcQuestions.json,
+
+		File from Current Dir may not have AIP_ServiceName instead it may have values in the file AIP_ScriptName.dat (no _F|W.dat), so read from this file
+		Source: AIP_ServiceName,AIP_ServiceURL,AIP_JSONFileName
+		AIP_Mem_BenefitClaimsAccumulation,/api/bsc/gateway/member/benefits/claims/accumulation/v1,Mem_BenefitClaimsAccumulation.txt 
+		Possibility of multiple rows and handle the same //TODO
+
+		MOSTLY THE COPY From TEMPLATE FILE WILL BE MODIFIED FOR DATA AND SAVED LATER IN CURRENT Dir
+		
+		From the file from CurrentDir, Update the values for the AIP_Services.dat file (Section 0, para 2)
+		Key = Container,
+		  Value = the Container value from Section1
+		Key = ServiceName,
+		  Value = get this Value from CurrentDir file AIP_ServiceName key (Note it is transactionName)
+		Key = ServiceURL,
+		  Value = Value of ServiceURL from CurrentDir file containing key AIP_ServiceURL OR ServiceURL
+        Key = JSONFileName
+		  Value = Value of JSONFileName from CurrentDir file containing key JSONFileName
+		  If not, it will be the scriptname.json
+		  
+		Additional:
+		a)	The following key had to be renamed
+			OperationName to OperationMethodName
+		b) 	The following key and value need to be deleted
+			DBOPERATION
+			READ
+		
+		We will write the final data later
+
+ 
+
+==========================
+IMPACT OF SQL ON DATA FILE (_W|F.dat) 
+==========================
+
+17) Read the Dat File
+    Get the column name
+	
+	Execute the sql
+	Get the column name
+	Ensure the column name and the column name order matches, case sensitive
+	
+	RowNum column added
+	Number of Rows limited to ProdVolume
+	Log if there are discrepancies
+	
+SQL Operation to Create Data  
+
+	TO VALIDATE 
+		
+	Go to Automation.dat File, Find the value for the key ProdVolume
+		If the value is found, then PRODVolume= value for the key "ProdVolume" in AIP_Automation.dat 
+		If the value is not found, then PRODVolume=1000 ( a default volume)
+			
+    If you are reading the file from files, then
+	    If the file ending with _W.dat or _F.dat exits, Please check if the corresponding _W.sql file or _W.sql file exists 
+		If no sql file exists, print("No SQL Files found for "+targetDir + the dat file that is found, ending with _W.dat or _F.dat)
+		Exit processing further and continue to check for others
+		If any of the _W.dat or _F.dat exists and their corresponding W_.sql or _F.sql file exist
+		then sqlFile = ending with (_W.dat or _F.dat)
+         then Proceed
+		 
+	    Empty the contents of the existing dat File
+		dataFileName = targetScriptName+"_F.dat" or targetScriptName+"_W.dat" 
+	     		
+	ProcessTheSQL sqlString
+    Read the sqlString from the file 
+
+	If you are reading from a Text File TestCatalog.txt, get it from the SQLQueryforData.
+	If you are reading it from the _F.sql or _W.sql then get it from the relevant sql file.
+		
+	If more than one sql, loop.
+	Read the first SQL from the file.
+	
+	If text line is found, Modify the sql... remove the comment lines (single comment and multi line comment, and "--" and ";")
+		Make the whole string as one without a next line 
+        e.g. 	if ((!line.contains("\n"))) {
+		        	sql.append(line);
+	            	}
+        If the sqlString contains rownum at the end and has value change the value to NFRVolume
+		If the sqlString does not contain rownum and value at the end, then print Message "No RowNum is found in the .dat file"
+
+
+	IGNORE 
+	-------------
+		If the sqlString contains (Facets or SBSB_ID or GRGR_ID) then 
+		   connectionString =FAC_DB
+		   if sqlFile does not exist (writetheStringToASQLFile(sqlString, targetScriptName+"_F.dat)) Close the sqlFile
+		else the 
+		   connectionString=SYSTEM_DB
+		   if sqlFile does not exist (writetheStringToASQLFile(sqlString, targetScriptName+"_W.dat)) Close the sqlFile
+		
+		Make DB Connection(connectionString)
+		 if (connectionString == FAC_DB)
+		     connectDB = FacetsDB()
+			 if dataFileName not defined earler, then
+			 Create a file dataFileName = targetScriptName+"_F.dat", write mode
+	
+	     else (
+		     connectDB = SystemDB()
+			 if dataFileName not defined earler, then
+			 Create a file dataFileName = targetScriptName+"_W.dat", write mode
+		 )
+		 
+		ExecuteSQLusing the connection (connectDB, sqlString, dataFileName)
+		If success,
+		  Ready to write to the file dataFileName
+		    
+	PROCESS THE FOLLOWING Data Separately
+	--------------------------
+	
+		Claims, Member, Address, City
+		6666, 18328383, 2333 San Bruno, San Francisco
+		7777, 23175678, 4355,CountryDrive, Fremont
+		8888, 2318,2314, 1000,Whitehead, Union City,CA
+		
+		After processing only one record will survive.
+		
+		Anothe Data
+		Memberid,CustomerId
+		5000, 9999999
+		99999, XEH123456
+	
+		The column count and comma count logic will be verified with above two sets of data
+		
+		Read each row and ensure no extra comma (,) exists in the value, which will make the row out of sync in .csv format (.dat file works as a .csv file)
+
+		ProcessColumnName:
+			Get Column headers, with comma delimiter value
+			Count the number of columns  
+			If the number of column is nc, then the number of comma is colCommaCount=nc-1
+			If the column does not contain RowNum in the column name,
+			write RowNum to the ColumnHeader in the same first row with comma prefix
+		  
+		Process Each row retuned by the server one by one till the last row in a Loop
+			For the first row, get the count of comma, it should be equal to colCommaCount
+			If it is not same as colCommaCount, ignore the row, do not write to the file
+			If it is same as colCommaCount, then add 1 in a format 00001 for the row and write the data to the file.
+			You will increment the RowCount by 1 when you write the data to the file.
+		Go on a loop till you process NFRVolume
+	
+		Close the dataFileName.
+
+
+==============================
+4) PRM File Manipulation
+==============================
+	.PRM and ACTION File Section can be updated later in parallel.
+
+5) Modify the .prm File with the data from script file
+
+	1) Backup the .prm File
+
+	2) Remove the following segments from the .prm file
+		Env%
+		AIP_Auth%
+		AIP_Service%
+		DateTime
+		Iteration
+		UNIQ1, UNIQ2 (If Found both in action file -> report)
+		VUserID
+	3) Modify the Data Params
+		Reference to W or F.dat Add prefix JBody_ (Make a Note so you can update the File)
+		JBody triggers, the row assignment logic to fail
+	4) Copy the Sys_ segments from template file
+		Sys_DateTime (Sys Missing)
+		
+	Change all Sys_
+
+   a) 	Backup the targetDir.prm File with targetDir.prm.DUP
+	Ensure it is able to back up overwriting a file if it exists 
+
+    b)  The below steps would have covered in Step 8 itself.
+	For AIP_<ServicesName_F|W.dat file, we should have corresponding SQL
+	Find out how many _W.dat or _F.dat file
+        Ensure each .dat file has corresponding .sql file
+        There could be one or more .sql File
+	find the list and loop through them
+        If the .sql file exists, execute each of the file and update the dat file
+        If the .sql file does not exist, get the sql file data_sets created at the begining using TestCatalog.txt
+	There may be multiple _F|W.dat file and there may be multiple _F|W.sql file. 
+	Write to log on the name of the dat file and sql file, found or not Found
+        The above steps would have covered in Step 8 itself.
+	     	
+	=========================================================
+ 	Read the prm file in the clone directory
+	Split the segments as below
+		topSegment
+		dataSegment
+		bottomSegment
+	The segments can be a variable or file.
+		
+	Search for the text starting with [parameter:JBody_
+	If found, all the lines of code prior to that are to be saved as topSegment
+        If not found, write to log
+	Search for the next text starting with [parameter:Sys_DateTime]
+	If found, save all the string including [parameter:Sys_DateTime] in to a bottomSegment
+        If not Found, write to Log
+	Now the middle segment is dataSegment
+	the following data can be saved as key pair value or just a text set, which will be modified
+	
+	Find out the list of all the columns from all the _F|W.dat files.
+	Find out all these column in the _F|W.dat has entries in the dataSegments.
+	If yes, Write to Log
+ 	If No, write to Log with details.
+	
+	We need to ensure there is an entry for every column in _F|W.dat  file (each dat File) in dataSegments.
+	So you need to gather the following details for each _F|W.dat  file.
+
+ 	This can be done as part of Section 8 also, execute sql, update (_F|W.dat) file,
+	Get All the columns from the _F|W.dat file as follows:
+	       ColumnName, DatFileName, AnchorColumnName (mostly the first column)
+	Write these details to the Log.
+	If there are multiple dat file, Get All the columns from the _F|W.dat file as follows:
+	       ColumnName, DatFileName, AnchorColumnName (mostly the first column)
+	Write these details to the Log.
+
+	For the columnName, You will  CREATE A BLOCK OF DATA THAT WILL BE CALLED dataSegments. You can write this to a tempFile newDatFile.prm
+
+	=========================================================
+
+	find how many column from the _W|F.dat file handled above
+	For each column name, replace the name with a prefix JBody_ if it does not exist already
+	So the new values will be JBody_<theColumnName1>, JBody_<theColumnName2>, etc.
+	Sort the JBody_columnname in ascending order.
+
+	Ensure the following:
+          a) For all the ColumnName inside the parameter file inside a sub-segment is same as the column found in dat file
+          b) The parameter: name includes the ColumnName
+             e.g [parameter:JBody_AuthLogin] included the ColumnName="AuthLogin"  
+                      The name AuthLogin found in both the places
+                      Ensure this for all the param sub-segments
+                   c) parameter and paramName are the same in each sub-segment.
+                   d) For [parameter:JBody_AuthLogin], the SelectNextRow="Sequential" is the setting.
+                      For all other parameter, SelectNextRow="Same line as JBody_AuthLogin" will be the setting.
+                   e) For Table=the exact dat file name
+	       Copy and write to a NewDatFile.prm File
+
+	Find the value for the Key=AuthEnabled,
+	If the AuthEnabled is Yes
+	We need to enure Login and Password data set if this is not set already
+		a) 	For Login it will be 
+			[parameter:JBody_AuthLogin]
+			ColumnName="LOGIN"
+			Delimiter=","
+			GenerateNewVal="EachIteration"
+			OriginalValue=""
+			OutOfRangePolicy="ContinueWithLast"
+			ParamName="JBody_AuthLogin"
+			SelectNextRow="Sequential"
+			StartRow="1"
+			Table="ExactDatFileName_W|F.dat"
+			TableLocation="Local"
+			Type="Table"
+			auto_allocate_block_size="1"
+			value_for_each_vuser=""
+			The parameter: name for this is not same that of JBody_ColumnName
+			Ensure the ColumnName value is same as the value of the column name in the dat file, IF NOT, FIND out the one similar to the LOGIN and enter that value here.
+			The table= value should be the correct dat file where this column name is available
+			The parameter and the ParamName= values should match
+		b)  For password
+			[parameter:JBody_AuthPSWD]
+			ColumnName="PASSWORD"
+			Delimiter=","
+			GenerateNewVal="EachIteration"
+			OriginalValue=""
+			OutOfRangePolicy="ContinueWithLast"
+			ParamName="JBody_AuthPSWD"
+			SelectNextRow="Same line as JBody_AuthLogin"
+			StartRow="1"
+			Table="ExactDatFileName_W|F.dat"
+			TableLocation="Local"
+			Type="Table"
+			auto_allocate_block_size="1"
+			value_for_each_vuser=""
+		
+			The parameter: name for this is not same that of JBody_ColumnName
+			Ensure the ColumnName value is same as the value of the column name in the dat file, IF NOT, FIND out the one similar to the password and enter that value here
+			The Table= value should be the correct dat file where this column name is available
+			The parameter and the ParamName= values should match
+			Since this data depends on the Member Login id first, so SelectNextRow="Same line as JBody_AuthLogin"
+				
+			e)  Add additional data sets here
+			[parameter:JBody_COLUMN_NAME]
+			ColumnName="COLUMN_NAME"
+			Delimiter=","
+			GenerateNewVal="EachIteration"
+			OriginalValue=""
+			OutOfRangePolicy="ContinueWithLast"
+			ParamName="JBody_COLUMN_NAME"
+			SelectNextRow="Same line as JBody_AuthLogin"
+			StartRow="1"
+			Table="ScriptFileName_W|F.dat"
+			TableLocation="Local"
+			Type="Table"
+			auto_allocate_block_size="1"
+			value_for_each_vuser=""
+			
+			The parameter: name for this is SAME that of JBody_ColumnName
+			Ensure the ColumnName value is same as the value of the column name in the dat file ( SAME AS ABOVE WITHOUT THE JBody_ )
+			The Table= value should be the correct dat file where this column name is available
+			The parameter and the ParamName= values should match
+			Since this data depends on the Member Login id first, so Set SelectNextRow="Same line as JBody_AuthLogin"
+		
+			d) Repeat the step c  for all other Data values
+			
+        	The parameter: name for this is SAME that of JBody_ColumnName
+			Ensure the ColumnName value is same as the value of the column name in the dat file ( SAME AS ABOVE WITHOUT THE JBody_ )
+			The parameter and the ParamName= values should match
+			Since this data depends on the previous data so Set SelectNextRow="Same line as JBody_AnchorColumnName" 
+			Here you will replace with the right value for JBody_AnchorColumnName it will be replaced with the previous Parameter value
+			So, the correct value will be "JBody_ColumnName1", hence it will be SelectNextRow="Same line as JBody_ColumnName1" , this will be 			followed in all the subsequent JBody_Column segments
+			The Table= value should be the correct dat file where this column name is available
+		
+			d) Repeat the above Additional data step for all other Data values
+  
+
+	You can also provide the diff between the parameter name and others in top segments with that of newFile.prm File
+        And the existing dataSegments vs the new JBody segments written to newDatFile.prm
+	And ensure, all the data columns in _F|W.dat files, has entries with _JBody tag
+
+	ALL THE BLOCK OF DATASEGMENTS NOW BE MERGED IN TO A SINGLE FILE AS FOLLOWS
+			The newFile.prm will be updated as below
+			1) The top segments
+  				PLUS
+			2) the newDatFile.prm (JBody all data sorted by [parameter: JBody_thisName])
+				PLUS
+			3) Bottom Segment
+	
+			Remove newDatFile.prm 
+			Remove the existing prm file and rename the newFile.prm to the existing prm FileName.
+			Please verify the line in .prm file and ensure that the text are in key value pair without no data mess.
+			Ensure all data columns from _W|F.dat file has entries with PREFIX JBody_ and the relevant dat file is mentioned and relevant anchor column name is used  in other sub-segments. 
+	
+
+
+============================================
+FILE Manipulation
+============================================
+17) Update the File Contents
+
+	Replace the text srcDir to targetScriptName in all of the file contents below
+   
+	a) 	default.usp
+	b) 	targetDir.prm (same as Files ending in .prm
+	c) 	*.usr (
+			ParameterFile=targetDir.prm
+			For others, replace srcDir with targetScriptName
+		)
+	d) 	srcDir+".c"
+
+1)  Text Update/Replace changes in fi1e ending with .usr file section
+
+   [ManuallyExtraFiles]
+    
+	if (Container == BUSSERV1)
+		THEN Insert AIP_Auth_MemAuth.h=
+	And Insert
+		AIP_Initialize.h=
+		AIP_ResponseAnalysis.h=
+		Utils.c=
+
+	After all the Insert, It will finally look like
+	[ManuallyExtraFiles]
+    AIP_Auth_MemAuth.h=
+	AIP_Initialize.h=
+	AIP_ResponseAnalysis.h=
+	Utils.c=
+
+
+================================================
+INIT and Action File MODIFICATIONS
+================================================
+
+1) Payload count - Response verification - Improve with Data
+
+1) Vuser_init File
+
+
+5) ACTION FILE Manipulation
+
+	1) Get a File Content for each Segment in the existing File and Current File and Print the same to log.
+	2) Copy over the Format section
+	3) Modift dat File with JBody_
+	3) Check for exceptions
+		 Print Exceptions report
+
+4) 	Rename the Files in the TargetDirectory
+	->	Change the Following File names with TargetDirName
+		Files ending with 
+			*.usr
+			*.prm
+   ->	Change the Following File names with targetScriptName
+			srcDir+".c" will become targetScriptName
+			srcDir"_W.dat" will become targetScriptName+"_W.dat" or srcDir+"_F.dat" will become targetScriptName+"_F.dat"
+			srcDir+"_W.sql" will become targetScriptName+"_W.sql" or srcDir+"_F.sql" will become targetScriptName+"_F.sql"
+			(This will have changes in .prm file)
+			"z"+srcDir.c to "z"+targetScriptName+".c"
+			"z"+srcDir.json to "z"+targetScriptName+".json"
+			 
+
+
+ACTION FILE MODIFICATIONS
+
+) Verify JSON tag
+	 
+		    \"requestDateTime\": \"{requestDateTime_val}\"
+		    \"hostName\": \"{hostName_val}\"
+		    \"transactionId\": \"{transId_val}\"
+
+
+
+==========================
+VALIDATIONS AND list
+==========================
+
+Check and Ensure
+1) action.c constains zScriptName. 
+
+2) Remove the files from Currentscripts folder with the name
+    AIP_Automation.dat
+	AIP_Env.dat
+    AIP_Auth.dat
+    AIP_ScriptName.dat
+	AIP_Services.dat
+   Now, Save all the dat file with relevant name as
+    AIP_Automation.dat
+	AIP_Env.dat
+    AIP_Auth.dat
+    AIP_Services.dat  
+
+10) Final Check
+    Handle with methods
+	Go through all the files ending in .dat  in the target directory
+	1) Ensure the count of commas is same in each line, if not Log Message(TargetDir, DatFileName)
+	2) Ensure only one empty line exists
+		If no empty line, insert empty line
+		If more than one empty line, delete all lines except one.		
+
+=============================================================================================
+Main Section - THIS SECTION IS NOT REWRITTEN, EXACT COPY OF PREOBLEM2, NEED TO BE MODIFIED
+=============================================================================================
+
+X CreateALogFile() in the busserv directory not inside clone
+
+CleanUpScriptFiles(srcRootDirPath, srcDir)
+
+#Backup Template
+
+	srcRootDirPath = 
+	srcDir =
+	zipRootDir=
+	ZipDir = 
+	CleanUpScriptFiles(srcRootDirPath, srcDir)
+	ZipFile(srcRootDirPath, srcDir, zipRootDir, ZipDir)
+
+# ReadTheCatalogFileAndDefineTheData
+
+	FileDir =
+	FileName =
+	actualPath =   srcRootDirPath+'\\'+FileDir+'\\'+FileName
+	row=0
+	delimiter="~~"
+	fileType = txt
+	tartgetRootDirPath =
+   
+ 	
+	Your Looping code looks good, reformat the inner calls to look like the steps given below
+	with open(os.path.join(current_directory,catalogFileToRead),"r") as f:
+	//f.open (fileName, "r")
+	
+	{
+   		For Each DataSet
+		parse/cleanup and get the Data Row in Key-Pair value(Dict) as ProcessedKeyPairData -> Create a Method call as ProcessRawDataGetFinalDict(?)
+	       
+		2) 	DEFINE;
+			targetDir         -> (Value of the key TestSuiteName) +"_"+(Value of the key TestMethodName)
+			targetScriptName  -> (Value of the key TestMethodName)
+
+		3) 	From Source (Template Dir and Files) Copy to Target Dir
+            SrcDirToClone(srcRootDirPath+srcDir, tartgetRootDirPath+?, AuthURL)
+			
+		4) 	Rename the Files in the TargetDirectory
+			ChangeFileNames(Path?, targetDir)
+			ChangeFileNames(Path?, targetScriptName)
+		 
+		5) 	Update the File Contents
+			ReplaceStringInFiles(Path, sourceName, targetDir, targetScriptName )
+	   
+		6) 	Update the Files ending with .Dat File Content
+			UpdateAIPAutomationFile(FilePath, AIP_Automation.dat, ProcessedKeyPairData)
+			UpdateAIPEnvFile((FilePath, AIP_Env.dat, ProcessedKeyPairData)
+			UpdateAIPServiceFile((FilePath, AIP_Service.dat, targetScriptsName, ProcessedKeyPairData)
+			
+		7) 	ProcessJSon(FilePath, JSONFileName, targetScriptsName, ProcessedKeyPairData)	
+	   	
+		8) 	sqlFileProcess(?)
+   
+		9) 	PrmFileUpdateForJSONData(?)
+		
+		10) FinalCheck()
+   
+	}
+
+===============================================================================================================
+Methods to support Main Section  - THIS SECTION IS NOT REWRITTEN, EXACT COPY OF PREOBLEM2, NEED TO BE MODIFIED
+===============================================================================================================
+
+DeleteDir(srcRootDirPath, srcDir, DirName)
+ if...
+ else
+ 
+ If NotFound(LogMessage)
+
+CleanUpScriptFiles(srcRootDirPath, srcDir)
+  The code is in the attached .py file
+
+	Delete Unwanted Files from SourceDir
+	The path is before the DirNameAnd you will zip the Dir
+	Only one directory should be there in the zip, means it should not be zipped as Dir/dir/contents.
+
+		a) Delete result1 folder
+			DeleteDir(srcRootDirPath, srcDir, {"result1", "result2"})	
+			
+		b) DeleteFiles(srcRootDirPath, srcDir, startsWith, {"combined_", "testing"})
+			
+		c) DeleteFiles(srcRootDirPath, srcDir, endsWith, {".idx",".bak",".txt",".tmp",".log",".c.pickle})
+
+			all *.idx
+			all *.bak
+			all *.txt
+			all *.tmp
+			all *.sdf
+			all *.log
+			all *c.pickle
+			all *.ci
+			all *.xml
+			
+		d) DeleteFiles(srcRootDirPath, srcDir, exactMatch, {"Pre_cci.c", "test.txt"})
+	
+ZipFile(srcRootDirPath, srcDir, zipRootDir, ZipDir)
+   
+	source
+	target
+	Code to Zip the file using the source and place it in target
+   
+
+JSONFormatter(String) - return JSON Formatted data in String Format
+	
+	RequestJSON should not have empty lines.	
+	Format the JSON using a JSON formatter.
+
+
+ProcessRawDataGetFinalDict(?)
+    
+		parse and get Key Pair value
+		Save each data lines as Dict (key-pair) in the following standards
+		TestSuiteName: 
+		TestMethodName:  This is same as Test Operation Name 
+		Container:  This is same as JVM
+		AuthURL: 
+		AuthToken: 
+		OtherHeaderInfo: 
+			Parse to get two additional key and value as
+			ClientID: 9875-6ttutu-763
+			ClientSecret: h;sppewmkjkjjhjhjhjhjhhggfs_ds'
+		ServicesEndPointURL:
+			From the ServicesEndPointURL POST:https://esbhdp-api.bsc.bscal.com:8888/private/releasetest/api/bsc/gateway/idcard/print/v1
+			You will get the following four additional key and value
+				ServiceType: POST
+				ServerName: https://esbhdp-api.bsc.bscal.com:8888
+				ServerPath: /private/releasetest/api
+				ServiceURL: /bsc/gateway/idcard/print/v1
+				Some times some values won't present				
+		RequestJSON: 
+			JSONFormatter(String)			
+		SQLQueryforData:
+		ResponseJSON:
+		SQLQueryForVerification:
+		TestExecutionStatus:
+	Return ProcessedKeyPairData
+
+
+SrcDirToClone(srcRootDirPath+srcDir, tartgetRootDirPath, AuthURL)
+
+	The SrcDir is selected based on AuthURL
+		If AuthURL== "\test.htm"
+			SourceDir = "C:template\testing"
+		else
+			srcRootDirPath+"\\"+srcDir   #default src directory
+			
+        PERFORM COPY DIR 
+	    shutil.copytree(srcRootDirPath+"\\"+srcDir, tartgetRootDirPath)
+
+
+ChangeFileNames(Path, targetDir)
+
+    Files = {".usr", ".prm"}
+		->Change the Following File names with TargetDirName
+			Files ending with 
+			*.usr
+			*.prm
+
+
+ChangeFileNames(Path, targetScriptName)
+		
+		This method is same as above, so either you need to have a distinct method name or put a logic in place to handle it.
+
+		->Change the Following File names with targetScriptName
+			srcDir+".c" will become targetScriptName
+			srcDir"_W.dat" will become targetScriptName+"_W.dat" or srcDir+"_F.dat" will become targetScriptName+"_F.dat"
+			srcDir+"_W.sql" will become targetScriptName+"_W.sql" or srcDir+"_F.sql" will become targetScriptName+"_F.sql"
+			(This will have changes in .prm file)
+			"z"+srcDir.c to "z"+targetScriptName+".c"
+			"z"+srcDir.json to "z"+targetScriptName+".json"
+
+
+ReplaceStringInFiles(Path, sourceName, targetDir, targetScriptName )
+    sourceName - Existing String
+	targetScriptName - New String
+	
+		a) 	default.usp
+		b) 	targetDir.prm (same as Files ending in .prm
+		c) 	*.usr (
+				ParameterFile=targetDir.prm
+				For others, replace srcDir with targetScriptName
+			)
+		d) 	srcDir+".c"
+
+	   
+ReadDatFileGetKeyPairValue(FilePath, FileName)  # Added to support next three functions and more
+		Read the file
+		Key pair value
+    Return Dict
+
+
+UpdateDatFile(FilePath, FileName, Key, value)   /// Use this function as much as possible
+	If not success, Log it
+	
+	
+UpdateAIPAutomationFile(FilePath, AIP_Automation.dat, ProcessedKeyPairData)
+		For File read Use ReadDatFileGetKeyPairValue(FilePath, FileName)
+		
+		For Key=ScriptName, the value should be targetScriptName
+		The ProcessedKeyPairData contains AuthURL.
+		If AuthURL is Null (para 3 above), then Set for Key=AuthEnabled, the value should be No
+		For the key= ServiceComponentName, the value is the Value of the key TestSuiteName
+		
+		For Key Value update, Use UpdateDatFile fn 
+		If you open file, close file
+
+
+UpdateAIPEnvFile(FilePath, AIP_Env.dat, ProcessedKeyPairData)
+		For File read Use ReadDatFileGetKeyPairValue(FilePath, FileName)
+		
+		Env -> the value is from ServiceEndPointUrl from ProcessedKeyPairData 
+			  if the value contains "bscedh1000"
+				then the value of Env is "APIConnect"
+			  if the value contains "esbhdp-api.bsc.bscal.com"
+				then the value of Env is "Stage_DP"
+		Server-> the value is from ServiceEndPointUrl from ProcessedKeyPairData 
+			  The value starts from http and ends at .com plus port (if any). It is possible not to have a Port
+		ServerPath-> The value is from ServiceEndPointUrl from ProcessedKeyPairData 
+			  The value starts from the end of Server (as above) but before /bsc
+		ClientID -> From ProcessedKeyPairData
+		ClientSecret -> From ProcessedKeyPairData
+	   
+	   	For Key Value update, Use UpdateDatFile fn 
+		If you open file, close file
+
+
+UpdateAIPServiceFile((FilePath, AIP_Service.dat, targetScriptsName, ProcessedKeyPairData)
+		For File read Use ReadDatFileGetKeyPairValue(FilePath, FileName)
+	
+		For Key=Container, the value should be From Container from ProcessedKeyPairData 
+		For Key=ServiceName, the value is targetScriptsName
+		For Key=ServiceURL, the value is from the ServicesEndPointURL from ProcessedKeyPairData 
+			Parse the value and get value starting from /bsc so in this case it will be /bsc/gateway/idcard/print/v1		  
+		For JSONFileName, the value is targetScriptName+".json"
+		For TestMethodName, the value should be TestMethodName from ProcessedKeyPairData 
+			which is same as targetScriptName
+			
+		For Key Value update, Use UpdateDatFile fn 
+		If you open file, close file
+			
+ProcessJSon(FilePath, JSONFileName, targetScriptsName, ProcessedKeyPairData)	
+	Empty the existing file if Exist
+	Write the value from RequestJSON from TestCatalog to targetScriptName+".json" save and close the file.  Please make sure empty lines should not exist
+	
+	In the memory or as a variable Modify the RequestJSON as follows:
+		    Replace all the single " with \"
+			In everyline begining put a "
+			and Everyline end put another "
+			No quotes for empty lines, means empty lines should not exist
+        Now Update value for certain keys, specifically three values 
+		In the requestHeader section (not requestBody) section, the value for the following key will be updated.
+	    	"requestDateTime": "35",
+			"hostName": "33hh",
+	    	"transactionId": "AIP_Mem_IDCardPrint_0010001"	
+		After update it will be changed to
+	        "\"requestDateTime\": \"{requestDateTime_val}\","
+            "\"hostName\": \"{hostName_val}\","
+            "\"transactionId\": \"{transId_val}\""
+		Now, read the srcDir+".c" file
+			Search for "request_json_base="
+			If that exists and the next row starts with "{"   THEN DELETE THE LINE TILL YOU SEE ; (IT CAN APPEAR IN A SINGLE LINE OR IT COULD BE "}";  WITH OR WITHOUT SPACES
+			Now Write all the updated JSON from the above steps.
+		In the last line, ensure it ends with semi-colon once.
+		
+	Save and Close the file.
+
+sqlFileProcess(?)
+   
+PrmFileUpdateForJSONData(?)
+
+FinalCheck()		
+
+  
+
+==============================================
+Just a Note not for Coding
+==============================================
+    1) File Changes (Init, Action, End)
+	2) FileName Changes
+	3) Some Action Changes  (+, -, Modification)
+	4) Report Analysis Changes (the Call and the File)
+	5) Library File Changes  (+, -, Modification)
+	6) Parameter Changes  (+, -, Modification)
+	7) Some Column Name changes (+, -, Modification)
+	8) Things that affects
+	9) Things that do not affect 
+	
+	
+================================================
+1) Read the template.txt file first row as columnHeader
+   FirstName,LastName,DOB,Address,City,State 
+   You will write the columnHeader names to a Output_example.csv file in the same order (same sequence, same names)
+
+2) Read the FileToRead.txt file
+   If you parse the file using Delimiter "~~", you will get two sets of records
+
+3) From the first set, parse the data in a logical manner to write
+
+4) You will extract and write the data in two rows in a csv format
+
+5) The Output_example.txt you create should look like ExpectedOutput.csv file.
+
+Processing Logic:
+2) Write the column name as
+   FirstName,LastName,DOB,Address,City,State 
+1) Split the content by delimiter ~~
+2) Now Process each row
+   If it contains FirstName- Yes or No
+   Yes, Write the FirstName to FirstName (then pop the data out)
+   If No, find out if it contains the LastName
+   Yes, Write the last name (then pop the data out)
+   If No, Find out if it contains Name
+   Yes, split and write to FirstName and LastName (then pop the data out)
+   Now DOB, (see first row), parse and get the data and write to csv file (pop the data out)
+   continue till State 
+   now look at the remaining data
+   the key is Notes and the the value is key data
+   the Country is USA
+   While parsing second set of row, You will get Place of Birth as a column key and the value "San Francisco"
+
+Please note not all column can be present, or more column can be present.
+Please note there will be multiple rows so you may have to loop through the row.
+There will be multiple set of column/data rows starts with c:\ or empty lines.  
+The text can be dictionary containing unstructured key pair value.
+Need to write to the File in the same order as template and add relevant values from the FileToRead.txt file:
+If no value, have the column name from template, and no need to add the data
