@@ -1,0 +1,153 @@
+
+EXPECTATION:
+
+Ensure the project release is tested through Jenkin.
+
+
+TO RUN TESTS FOR THE FIRST TIME
+===============================
+Requirements:
+	1) Understanding of Git Command
+	2) Knowledge of BB 
+	3) Jenkins and Login access to Jenkins (all four)
+	4) JIRA and the knowledge on where the Performance Tickets can be created. (Q)
+	5) Ensure you have JIRA ticket for the Performance Test, if not create one.
+Project Setup in BB:
+    1)Verify EPE repository name (aaa.bbb.ccc) consists of
+        a) Portfolio name in the first section
+        b) BB DEV Project name in the second section
+		c) BB Repository name in the third section.
+		   Normally, the third section may not be same, meaning the DEV repository name and EPE mapping may not be the same.
+		   The best approach is to create a folder in EPE repository with the same name of BB DEV repository.
+Ensure Test assets are in the Branch:
+	1)Verify the Branch is created with tag as
+	    release/23.08.10
+		the word release is required followed by /
+		the release number is the release that being supported, it is the same name that of dev release branch
+		if the release is moved and a different branch is created, create a same branch here.
+	2)Verify the following directory and files exists under the release branch
+	    a) main directory such as web, services or edi, etc.
+		b) at the same level we have files such as
+		      .gitignore - this is the first file that gets uploaded to BB.
+			             - this file contains list of files, not to be allowed to the repository while committing to the repository.
+			  Jenkinsfile- this file contains arguments for build and emails.
+              config-regressiontest.yml
+                         - this file should contain information for test id and test instance id for executing the test.
+                         - the value given for duration is supposed to override test duration						 
+Initiate a Test from BB:
+1)  Make a simple change and commit the file and push on the remote server. This will effect a Test execution.
+    You can modify the JenkinsFile, changing or adding an email id or adding a comment.
+2)  Go to Jenkins to see the Test and you can cross check in LRE with the run id (that the test is running)
+3)  You can check the results status in Jenkins
+4)  Test results are Emailed with link and as well as link to download the html results file in .zip format
+
+
+TO RE-RUN THE TESTS FROM Jenkins
+================================
+
+1)  Login to Jenkins (out of 4, identify the one it belongs to you)
+2)  Go To the Jenkins repository
+3)  Execute the Test manually
+4)  FOLLOW STEPS 3 and 4 from above.
+
+
+RUN REGRESSION TESTS USING SCHEDULED JOBS
+=========================================
+Modification is in progress.
+
+CICD TESTS
+===========
+The Tests can be invoked after the code is deployed in Stage, as Post-deploy action.
+To Enable the CICD, the post-deploy action should have entries to call repository/branch to execute the test.
+This is managed with the help of Tools team.
+When you upload the CICD Implementation page, Jeremy pickup the change and add CICD call.
+No need to do anything right now, Focus on project onboard to Jenkins.
+			  
+			  
+
+			  
+		   exist with the same name, if not the project directory is created and all the scripts are grouped.
+      The with Jenkins 
+
+
+
+Overview
+Handover
+understand
+CICD Coordination
+SmokeTest Coordination
+Regression Test - we have to oversee. EDI. KT. KT on Confluence.
+
+mmp.mpo
+
+
+BB
+repository
+mistakes in naming - already exists
+
+Branch
+why Branch in bsc?
+config file? to support all kinds of testing using LRE, tomorrow you may not need it if the tool changes.
+mistakes in Branching
+Branch concept / How it works
+Merging
+We always go with Final script / When you need version control? if you want to go back to script? 
+Key File - Version Control on those files are important
+commits in BB - effect
+
+ 
+LRE
+we have a scenario.. 
+how a scenario is called?
+Just an engine
+do you need version control for scripts in LRE? No
+so, branch concept exist only in BB not in LRE
+Scripts -
+Can we create a 
+Scenarios - Naming convensions
+Repository entry for each changes
+
+BB -> DEV
+Understand the differences
+
+JIRA
+Naming
+
+SONAR CUBE
+REPOSITORY
+
+DEV
+repository
+Every one testing should know this.
+How to know this? Artifactory / JIRA
+Mapping should be for each repository, it does not exist.
+
+BB-> LRE
+Just an Engine
+Mapping
+Regression Test
+Component Test / repository wise not mapped / we need to ensure
+
+BB-> LRE -> LRE Jenkins Pipeline
+Jenkins File
+runnings directly from Jenkins
+Rest API calls
+ Upload - all
+ Upload - only changed
+ Test Run - > Run Id
+ Test Status Checking 
+ Test Results
+ Test Results Storage -> Email
+ 
+ Test Failures
+ 1) when already runnings (same test cannot)
+ 2) different test when multiple execution
+ 3) happens without overlapping LG's
+ 
+Manage
+1) Branching and Testing
+2) Jenkins enabled -> Add more and more repositories and complete the Jenkins enablement
+3) Regression Test
+4) CICD Enabled
+5) Version Control Email
+6) Test Status Email
