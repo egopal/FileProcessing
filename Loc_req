@@ -599,3 +599,103 @@ AI-generated code. Review and use carefully. More info on FAQ.
 Make sure you have the payload.xml file containing your SOAP payload data in the same directory as the locustfile.py. Adjust the file paths and payload data as needed for your specific use case. 
 
 ========================
+
+from locust import HttpUser, task, between
+
+class Mime(HttpUser):
+
+    host = "https://app-aas276-npn-its-edi-cus-226.azurewebsites.net"
+    user_count = 10
+    spawn_rate = 5
+    run_time = 60
+    
+    wait_time = between(1, 5)  # Wait between 1 and 5 seconds after each task
+
+
+    def on_start(self):
+        # Initialize any startup variables here
+        self.host = "https://app-aas276-npn-its-edi-cus-226.azurewebsites.net"
+        self.user_count = 10
+        self.spawn_rate = 5
+        self.run_time = 60
+
+        # Start the test automatically
+        self.client.post("/swarm", data={
+            "host": self.host,
+            "user_count": self.user_count,
+            "spawn_rate": self.spawn_rate,
+            "run_time" : self.run_time})
+
+        print(f"On Start Host Variables Passed");
+         
+        # Define variables
+        '''payload_type = "X12_276_Request_005010X279A1"
+            processing_mode = "RealTime"
+            payload_id = "g46539382754b2c"
+            timestamp = "2023-10-25T10:45:43Z"
+            username = "g4healthsysinc"
+            password = "0000000000"
+            sender_id = "275083959"
+            receiver_id = "940360524"
+            core_rule_version = "2.2.0"'''
+
+    @task
+    def send_api_request(self):
+
+        # Define headers
+        headers = {
+            "Content-Type": "multipart/form-data; boundary=---011000010111000001101001",
+            "Cookie": "ARRAffinity=897c2c26a5aa64c427bd79eccda36f44e1fc56b481d0c0a60d687105db12449e; ARRAffinitySameSite=897c2c26a5aa64c427bd79eccda36f44e1fc56b481d0c0a60d687105db12449e",
+            "User-Agent": "insomnia/2023.5.8"
+        }
+
+        # Define form data
+        form_data = {
+            "PayloadType": "X12_276_Request_005010X279A1",
+            "ProcessingMode": "RealTime",
+            "PayloadID": "g46539382754b2c",
+            "TimeStamp": "2023-10-25T10:45:43Z",
+            "UserName": "g4healthsysinc",
+            "Password": "0000000000",
+            "SenderID": "275083959",
+            "ReceiverID": "940360524",
+            "CORERuleVersion": "2.2.0"
+        }
+
+        # Define the payload
+        payload = """ISA*00*          *00*          *ZZ*TRANSUNION     *30*940360524      *210729*1336*^*00501*423703807*0*T*:~GS*HR*TRANSUNION*940360524*20240111*133604*165278843*X*005010X212~ST*276*0001*005010X212~BHT*0010*13*EDI-27X-Prolifics-Migration*20240111*1240~HL*1**20*1~NM1*PR*2*BLUE SHIELD-CA (PPO INDEM ONLY)*****PI*090~HL*2*1*21*1~NM1*41*2*PHYSICIANS CHOICE MEDICAL INC*****46*1780810564~HL*3*2*19*1~NM1*1P*2*PHYSICIANS CHOICE MEDICAL INC*****XX*1780810564~HL*4*3*22*0~DMG*D8*19320702~NM1*IL*1*ZERE*FAWZIA****MI*1628301~TRN*1*27X-EDI~DTP*472*D8*20200501~SE*14*0001~GE*1*165278843~IEA*1*423703807~"""
+
+        form_data.update({"PayLoad": payload})
+        print(form_data)
+        print(headers)
+        
+        #form_data["PayLoad"] = payload
+
+        # Make the POST request
+        #response = self.client.post("/Aas276Services/api/bsc/gateway/aas/mime/v1", headers=headers, data=form_data, files={"Payload": payload})   
+        response = self.client.post("/Aas276Services/api/bsc/gateway/aas/mime/v1", headers=headers, data=form_data)   
+        
+        #print(f"Request Data: {response.request.form_data}")
+
+        #response = self.client.post("/Aas276Services/api/bsc/gateway/aas/mime/v1", data=payload)
+
+        # Print the response status code and content (optional)
+        print(f"Response status code: {response.status_code}")
+        print(f"Response content: {response.content}")
+
+        # Make an HTTP POST request with the specified headers, form data, and payload
+        
+        # Define your API request here using the variables
+        '''payload = {
+            "PayloadType": self.payload_type,
+            "ProcessingMode": self.processing_mode,
+            "PayloadID": self.payload_id,
+            "TimeStamp": self.timestamp,
+            "UserName": self.username,
+            "Password": self.password,
+            "SenderID": self.sender_id,
+            "ReceiverID": self.receiver_id,
+            "CORERuleVersion": self.core_rule_version,
+            "Payload": "ISA*00*          *00*          *ZZ*TRANSUNION     *30*940360524      *210729*1336*^*00501*423703807*0*T*:~GS*HR*TRANSUNION*940360524*20240111*133604*165278843*X*005010X212~ST*276*0001*005010X212~BHT*0010*13*EDI-27X-Prolifics-Migration*20240111*1240~HL*1**20*1~NM1*PR*2*BLUE SHIELD-CA (PPO INDEM ONLY)*****PI*090~HL*2*1*21*1~NM1*41*2*PHYSICIANS CHOICE MEDICAL INC*****46*1780810564~HL*3*2*19*1~NM1*1P*2*PHYSICIANS CHOICE MEDICAL INC*****XX*1780810564~HL*4*3*22*0~DMG*D8*19320702~NM1*IL*1*ZERE*FAWZIA****MI*1628301~TRN*1*27X-EDI~DTP*472*D8*20200501~SE*14*0001~GE*1*165278843~IEA*1*423703807~"
+        }'''
+
