@@ -74,7 +74,7 @@ class MyLocustUser(HttpUser):
 # Run the Locust test using the following command:
 # locust -f locustfile.py --host=https://app-aas276-npn-its-edi-cus-226.azurewebsites.net
 
-
+QA Mongo connection string: mongodb://xla:S3cret@10.148.11.197:27017/?authMechanism=DEFAULT&authSource=xla
 ============
 
 First, create a Locustfile (a Python script) named locustfile.py in your desired directory. You can use any text editor or IDE to create this file.
