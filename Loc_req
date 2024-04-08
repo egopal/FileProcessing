@@ -75,6 +75,108 @@ class MyLocustUser(HttpUser):
 # locust -f locustfile.py --host=https://app-aas276-npn-its-edi-cus-226.azurewebsites.net
 
 QA Mongo connection string: mongodb://xla:S3cret@10.148.11.197:27017/?authMechanism=DEFAULT&authSource=xla
+// Requires official MongoShell 3.6+
+db = db.getSiblingDB("GTM");
+db.getCollection("trntransaction").aggregate(
+    [
+        {
+            "$match" : {
+                "action_date" : {
+                    "$gte" : ISODate("2023-01-01T00:00:00.000+0000"),
+                    "$lt" : ISODate("2025-12-31T00:00:00.000+0000")
+                },
+                "name" : {
+                    "$not" : /^DE-ENVELOPE/
+                }
+            }
+        }, 
+        {
+            "$addFields" : {
+                "system" : {
+                    "$switch" : {
+                        "branches" : [
+                            {
+                                "case" : {
+                                    "$eq" : [
+                                        "$module",
+                                        0.0
+                                    ]
+                                },
+                                "then" : "MFT"
+                            },
+                            {
+                                "case" : {
+                                    "$eq" : [
+                                        "$module",
+                                        2.0
+                                    ]
+                                },
+                                "then" : "ITX"
+                            },
+                            {
+                                "case" : {
+                                    "$eq" : [
+                                        "$module",
+                                        4.0
+                                    ]
+                                },
+                                "then" : "BOOMI"
+                            },
+                            {
+                                "case" : {
+                                    "$and" : [
+                                        {
+                                            "$eq" : [
+                                                "$module",
+                                                9999.0
+                                            ]
+                                        },
+                                        {
+                                            "$eq" : [
+                                                "$module_id",
+                                                99993.0
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "then" : "BX Bridge"
+                            }
+                        ],
+                        "default" : "Unknown"
+                    }
+                }
+            }
+        }, 
+        {
+            "$group" : {
+                "_id" : "$job_id",
+                "totalRunningTime" : {
+                    "$sum" : "$running_time"
+                },
+                "transactions" : {
+                    "$push" : {
+                        "name" : "$name",
+                        "start_date" : "$action_date",
+                        "complete_date" : "$complete_date",
+                        "running_time" : "$running_time",
+                        "system" : "$system"
+                    }
+                }
+            }
+        }, 
+        {
+            "$project" : {
+                "_id" : 1.0,
+                "totalRunningTime" : 1.0,
+                "transactions" : 1.0
+            }
+        }
+    ], 
+    {
+        "allowDiskUse" : false
+    }
+);
+
 ============
 
 First, create a Locustfile (a Python script) named locustfile.py in your desired directory. You can use any text editor or IDE to create this file.
