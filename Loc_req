@@ -28,7 +28,79 @@ class MyLocustUser(HttpUser):
 
 # Run the Locust test using the following command:
 # locust -f locustfile.py --host=https://app-aas276-npn-its-edi-cus-226.azurewebsites.net
+import pymongo
+import json
 
+# MongoDB connection parameters
+MONGO_HOST = "10.148.11.197"
+MONGO_PORT = 27017
+MONGO_USER = "xla"
+MONGO_PASS = "S3cret"
+MONGO_DB = "xla"
+
+# Create the MongoDB client
+client = pymongo.MongoClient(
+    f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/?authMechanism=DEFAULT&authSource={MONGO_DB}"
+)
+
+# Get the "GTM" database
+db = client.getSiblingDB("GTM")
+
+# Get the "trntransaction" collection
+collection = db.getCollection("trntransaction")
+
+# Perform an aggregation query on the collection
+pipeline = [
+    # Add your aggregation pipeline stages here
+    {"$match": {"status": "completed"}},
+    {"$group": {"_id": "$customer_id", "total_amount": {"$sum": "$amount"}}},
+    {"$sort": {"total_amount": -1}},
+    {"$limit": 10}
+]
+
+results = list(collection.aggregate(pipeline))
+
+# Convert the results to JSON and print
+print(json.dumps(results, indent=2))
+
+# Close the MongoDB connection
+client.close()
+
+=============
+
+import pymongo
+import json
+
+# MongoDB connection parameters
+MONGO_HOST = "10.148.11.197"
+MONGO_PORT = 27017
+MONGO_USER = "xla"
+MONGO_PASS = "S3cret"
+MONGO_DB = "xla"
+
+# Create the MongoDB client
+client = pymongo.MongoClient(
+    f"mongodb://{MONGO_USER}:{MONGO_PASS}@{MONGO_HOST}:{MONGO_PORT}/?authMechanism=DEFAULT&authSource={MONGO_DB}"
+)
+
+# Get the "GTM" database
+db = client.getSiblingDB("GTM")
+
+# Get the "trntransaction" collection
+collection = db.getCollection("trntransaction")
+
+# Load the aggregation pipeline from a JSON file
+with open("aggregation_pipeline.json", "r") as file:
+    pipeline = json.load(file)
+
+# Execute the aggregation pipeline
+results = list(collection.aggregate(pipeline))
+
+# Convert the results to JSON and print
+print(json.dumps(results, indent=2))
+
+# Close the MongoDB connection
+client.close()
 
 ==========
 
