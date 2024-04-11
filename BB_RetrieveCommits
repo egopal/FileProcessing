@@ -1,0 +1,487 @@
+BB_RetrieveCommits
+
+
+Bitbucket API Interaction in Python
+To interact with Bitbucket using Python, we can utilize the requests library to make API calls. Here's an example code that retrieves all the new commits between two dates for a specific project and its repositories, separating new file commits and existing file modifications:
+
+The code you've posted appears to be a Python script that interacts with Bitbucket repositories and sends email notifications. Let's break it down:
+- Import Statements:
+    - import urllib3: This module provides an HTTP client for Python, including features like connection pooling, SSL/TLS verification, and more.
+    - import requests: The requests library is commonly used for making HTTP requests in Python.
+    - Other standard library imports (datetime, argparse, email.mime.text, smtplib, time, and os) are used for various purposes.
+- Disabling SSL Warnings:
+    - urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning): This line disables SSL warnings related to insecure requests.
+- Email Configuration:
+    - The script sets up an SMTP server (EMAIL_SRV) and specifies the sender's email address (FROM_EMAIL).
+    - The send_email function sends an email with the provided subject and message to the specified recipient.
+- Command Line Arguments:
+    - The script uses argparse to parse command line arguments. It accepts optional arguments --lookback_days and --email_list.
+- Bitbucket Interaction:
+    - The script interacts with Bitbucket repositories using the provided credentials (bb_username and bb_password).
+    - It retrieves recent commits from repositories associated with the "EPE" project.
+    - For each commit, it identifies the branch, commit date, and modified files.
+- Email Content:
+    - The script constructs an email message containing information about recent activity in the repositories.
+    - It includes details such as the commit author, commit message, date, branch name, and modified files.
+- Incomplete Code:
+    - The code snippet ends abruptly, and it seems there's missing code (e.g., the loop for iterating through file_list).
+Remember that this is a high-level overview, and specific details may vary based on the actual implementation and the environment where this script runs. If you have any specific questions or need further clarification, feel free to ask! 😊
+
+Write a code in python to Interact with Bitbucket using username and password for a project and all the repositories in the project for all the new commits between two dates separating new file commit and existing file modification commit
+
+## Copilot
+Certainly! Let's break down the Python script step by step:
+- Command Line Arguments:
+    - The script uses the argparse module to handle command line arguments.
+    - It defines two optional arguments:
+        - --lookback_days: Specifies the number of days to look back for recent activity (defaults to 10 if not provided).
+        - --email_list: Optional email list (not used in this snippet).
+- Setting the Lookback Date:
+    - The script calculates the lookback_date by subtracting the specified or default number of days (DAY_LIMIT) from the current date.
+- Bitbucket Interaction:
+    - The script interacts with Bitbucket repositories using the provided credentials (bb_username and bb_password).
+    - It retrieves information about repositories associated with the "EPE" project.
+    - For each repository, it fetches the most recent commit details.
+- Commit Details:
+    - The script extracts information from the most recent commit:
+        - commit_hash: The unique hash of the commit.
+        - branch_name: The name of the branch associated with the commit.
+        - date: The commit date.
+        - name: The author's display name (if available) or raw author name.
+        - message: The commit message.
+- Modified Files:
+    - It retrieves the list of modified files associated with the commit.
+    - If a file is new (curr_diff_response['new']), it appends its path to file_list.
+    - Otherwise, it appends the path of the old version of the file (curr_diff_response['old']).
+- Email Message Construction:
+    - The script constructs an email message containing information about recent activity in the repositories.
+    - It includes details such as the repository name, commit author, commit message, date, branch name, and modified files.
+    - The email message is built incrementally as it processes each repository.
+- Limiting the Number of Files Shown:
+    - The script limits the number of files shown in the email to a maximum of 5.
+    - It skips files with the .bak extension.
+- Print Statements:
+    - The script prints a message indicating that recent activity was found in a specific repository.
+Remember that this is a simplified snippet, and the complete script would likely include additional error handling, logging, and other features. If you have any further questions or need clarification, feel free to ask! 😊
+
+
+
+The main changes are:
+To use this code, you'll need to replace the following placeholders with your actual Bitbucket credentials and project/repository details:
+BITBUCKET_USERNAME
+BITBUCKET_PASSWORD
+BITBUCKET_PROJECT_KEY
+BITBUCKET_REPO_SLUGS
+The code will then retrieve all the new commits between the specified start and end dates for each repository in the project, separating the new file commits and existing file modifications.
+The output will be printed to the console, displaying the commit details, author, date, and the list of new files or modified files for each commit.
+Note: Make sure to have the requests library installed before running the code (pip install requests).
+
+Added a new function get_project_repositories(project_key) to retrieve all the repository slugs for the given project key.
+In the main part of the code, we first get the list of all repositories in the project using get_project_repositories(BITBUCKET_PROJECT_KEY) and then loop through each repository to retrieve the commits between the specified dates.
+Now, the code will automatically retrieve the list of repositories in the project and process the commits for each repository, separating the new file commits and existing file modifications.
+Created two new directories: new_file_commits_dir and modified_file_commits_dir to store the commit information for new file commits and modified file commits, respectively.
+Instead of printing the commit information to the console, the code now writes the information to separate text files in the corresponding directories.
+The file names are generated based on the repository slug, with the format {repo_slug}_new_file_commits.txt and {repo_slug}_modified_file_commits.txt.
+Now, when you run the code, it will create a directory called bitbucket_commits in the current working directory, and within that directory, it will create two subdirectories: new_file_commits and modified_file_commits. Each repository will have a separate text file in the corresponding directory, containing the commit information for new file commits and modified file commits.
+This approach makes the output more organized and easier to manage, especially if you have a large number of repositories or a large number of commits.
+
+The main changes are:
+Added email-related variables: SMTP_SERVER, SMTP_PORT, SENDER_EMAIL, RECIPIENT_EMAILS, and EMAIL_SUBJECT.
+Added a new function send_email(sender, recipients, subject, body, attachments) to send the email with the log files attached.
+After generating the log files, the code gets the list of all log files and passes them to the send_email() function.
+Now, when you run the code, it will not only generate the log files in the bitbucket_commits directory, but it will also send an email to the specified recipients with the log files attached.
+Make sure to replace the following placeholders with your actual email credentials and recipient email addresses:
+SMTP_SERVER
+SMTP_PORT
+SENDER_EMAIL
+RECIPIENT_EMAILS
+your_email_password
+Also, note that you may need to enable "Less Secure App Access" in your Google account settings to allow the script to send emails using the Gmail SMTP server. Alternatively, you can use a different SMTP server if you prefer.
+
+
+
+import os
+import requests
+from datetime import datetime, timedelta
+
+# Bitbucket API credentials
+BITBUCKET_USERNAME = "your_bitbucket_username"
+BITBUCKET_PASSWORD = "your_bitbucket_password"
+
+# Bitbucket project details
+BITBUCKET_PROJECT_KEY = "your_bitbucket_project_key"
+
+# Date range for commits
+start_date = datetime(2023, 4, 1)
+end_date = datetime(2023, 4, 30)
+
+# Function to get all repositories in a project
+def get_project_repositories(project_key):
+    repos = []
+    page = 1
+    while True:
+        url = f"https://api.bitbucket.org/2.0/projects/{project_key}/repos?page={page}&pagelen=50"
+        response = requests.get(url, auth=(BITBUCKET_USERNAME, BITBUCKET_PASSWORD))
+        response.raise_for_status()
+        data = response.json()
+        repos.extend([repo["slug"] for repo in data["values"]])
+        if "next" not in data:
+            break
+        page += 1
+    return repos
+
+# Function to get commits between two dates
+def get_commits_between_dates(project_key, repo_slug, start_date, end_date):
+    commits = []
+    page = 1
+    while True:
+        url = f"https://api.bitbucket.org/2.0/repositories/{project_key}/{repo_slug}/commits?page={page}&pagelen=50&since={start_date.isoformat()}&until={end_date.isoformat()}"
+        response = requests.get(url, auth=(BITBUCKET_USERNAME, BITBUCKET_PASSWORD))
+        response.raise_for_status()
+        data = response.json()
+        commits.extend(data["values"])
+        if "next" not in data:
+            break
+        page += 1
+    return commits
+
+# Separate new file commits and existing file modifications
+def separate_commits(commits):
+    new_file_commits = []
+    modified_file_commits = []
+    for commit in commits:
+        new_files = []
+        modified_files = []
+        for change in commit["changes"]:
+            if change["type"] == "add":
+                new_files.append(change["path"])
+            elif change["type"] == "modify":
+                modified_files.append(change["path"])
+        if new_files:
+            new_file_commits.append((commit, new_files))
+        if modified_files:
+            modified_file_commits.append((commit, modified_files))
+    return new_file_commits, modified_file_commits
+
+# Create output directories
+output_dir = "bitbucket_commits"
+os.makedirs(output_dir, exist_ok=True)
+new_file_commits_dir = os.path.join(output_dir, "new_file_commits")
+os.makedirs(new_file_commits_dir, exist_ok=True)
+modified_file_commits_dir = os.path.join(output_dir, "modified_file_commits")
+os.makedirs(modified_file_commits_dir, exist_ok=True)
+
+# Retrieve commits for all repositories in the project
+project_repos = get_project_repositories(BITBUCKET_PROJECT_KEY)
+for repo_slug in project_repos:
+    print(f"Retrieving commits for repository: {repo_slug}")
+    commits = get_commits_between_dates(BITBUCKET_PROJECT_KEY, repo_slug, start_date, end_date)
+    new_file_commits, modified_file_commits = separate_commits(commits)
+
+    # Write new file commits to a file
+    new_file_commits_file = os.path.join(new_file_commits_dir, f"{repo_slug}_new_file_commits.txt")
+    with open(new_file_commits_file, "w") as f:
+        for commit, new_files in new_file_commits:
+            f.write(f"Commit: {commit['hash']}\n")
+            f.write(f"Author: {commit['author']['user']['display_name']}\n")
+            f.write(f"Date: {commit['date']}\n")
+            f.write("New files:\n")
+            for file in new_files:
+                f.write(f"- {file}\n")
+            f.write("\n")
+
+    # Write modified file commits to a file
+    modified_file_commits_file = os.path.join(modified_file_commits_dir, f"{repo_slug}_modified_file_commits.txt")
+    with open(modified_file_commits_file, "w") as f:
+        for commit, modified_files in modified_file_commits:
+            f.write(f"Commit: {commit['hash']}\n")
+            f.write(f"Author: {commit['author']['user']['display_name']}\n")
+            f.write(f"Date: {commit['date']}\n")
+            f.write("Modified files:\n")
+            for file in modified_files:
+                f.write(f"- {file}\n")
+            f.write("\n")
+
+
+========================
+
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+import requests
+from datetime import datetime, timedelta
+
+# Bitbucket API credentials
+BITBUCKET_USERNAME = "your_bitbucket_username"
+BITBUCKET_PASSWORD = "your_bitbucket_password"
+
+# Bitbucket project details
+BITBUCKET_PROJECT_KEY = "your_bitbucket_project_key"
+
+# Email details
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+SENDER_EMAIL = "your_email@example.com"
+RECIPIENT_EMAILS = ["recipient1@example.com", "recipient2@example.com"]
+EMAIL_SUBJECT = "Bitbucket Commit Logs"
+
+# Date range for commits
+start_date = datetime(2023, 4, 1)
+end_date = datetime(2023, 4, 30)
+
+# Function to get all repositories in a project
+def get_project_repositories(project_key):
+    repos = []
+    page = 1
+    while True:
+        url = f"https://api.bitbucket.org/2.0/projects/{project_key}/repos?page={page}&pagelen=50"
+        response = requests.get(url, auth=(BITBUCKET_USERNAME, BITBUCKET_PASSWORD))
+        response.raise_for_status()
+        data = response.json()
+        repos.extend([repo["slug"] for repo in data["values"]])
+        if "next" not in data:
+            break
+        page += 1
+    return repos
+
+# Function to get commits between two dates
+def get_commits_between_dates(project_key, repo_slug, start_date, end_date):
+    commits = []
+    page = 1
+    while True:
+        url = f"https://api.bitbucket.org/2.0/repositories/{project_key}/{repo_slug}/commits?page={page}&pagelen=50&since={start_date.isoformat()}&until={end_date.isoformat()}"
+        response = requests.get(url, auth=(BITBUCKET_USERNAME, BITBUCKET_PASSWORD))
+        response.raise_for_status()
+        data = response.json()
+        commits.extend(data["values"])
+        if "next" not in data:
+            break
+        page += 1
+    return commits
+
+# Separate new file commits and existing file modifications
+def separate_commits(commits):
+    new_file_commits = []
+    modified_file_commits = []
+    for commit in commits:
+        new_files = []
+        modified_files = []
+        for change in commit["changes"]:
+            if change["type"] == "add":
+                new_files.append(change["path"])
+            elif change["type"] == "modify":
+                modified_files.append(change["path"])
+        if new_files:
+            new_file_commits.append((commit, new_files))
+        if modified_files:
+            modified_file_commits.append((commit, modified_files))
+    return new_file_commits, modified_file_commits
+
+# Create output directories
+output_dir = "bitbucket_commits"
+os.makedirs(output_dir, exist_ok=True)
+new_file_commits_dir = os.path.join(output_dir, "new_file_commits")
+os.makedirs(new_file_commits_dir, exist_ok=True)
+modified_file_commits_dir = os.path.join(output_dir, "modified_file_commits")
+os.makedirs(modified_file_commits_dir, exist_ok=True)
+
+# Retrieve commits for all repositories in the project
+project_repos = get_project_repositories(BITBUCKET_PROJECT_KEY)
+for repo_slug in project_repos:
+    print(f"Retrieving commits for repository: {repo_slug}")
+    commits = get_commits_between_dates(BITBUCKET_PROJECT_KEY, repo_slug, start_date, end_date)
+    new_file_commits, modified_file_commits = separate_commits(commits)
+
+    # Write new file commits to a file
+    new_file_commits_file = os.path.join(new_file_commits_dir, f"{repo_slug}_new_file_commits.txt")
+    with open(new_file_commits_file, "w") as f:
+        for commit, new_files in new_file_commits:
+            f.write(f"Commit: {commit['hash']}\n")
+            f.write(f"Author: {commit['author']['user']['display_name']}\n")
+            f.write(f"Date: {commit['date']}\n")
+            f.write("New files:\n")
+            for file in new_files:
+                f.write(f"- {file}\n")
+            f.write("\n")
+
+    # Write modified file commits to a file
+    modified_file_commits_file = os.path.join(modified_file_commits_dir, f"{repo_slug}_modified_file_commits.txt")
+    with open(modified_file_commits_file, "w") as f:
+        for commit, modified_files in modified_file_commits:
+            f.write(f"Commit: {commit['hash']}\n")
+            f.write(f"Author: {commit['author']['user']['display_name']}\n")
+            f.write(f"Date: {commit['date']}\n")
+            f.write("Modified files:\n")
+            for file in modified_files:
+                f.write(f"- {file}\n")
+            f.write("\n")
+
+# Send email with log files attached
+def send_email(sender, recipients, subject, body, attachments):
+    msg = MIMEMultipart()
+    msg["From"] = sender
+    msg["To"] = ", ".join(recipients)
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+
+    for attachment in attachments:
+        part = MIMEBase("application", "octet-stream")
+        with open(attachment, "rb") as f:
+            part.set_payload(f.read())
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f"attachment; filename={os.path.basename(attachment)}")
+        msg.attach(part)
+
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp:
+        smtp.starttls()
+        smtp.login(SENDER_EMAIL, "your_email_password")
+        smtp.send_message(msg)
+
+# Get the list of log files
+new_file_commits_files = [os.path.join(new_file_commits_dir, f) for f in os.listdir(new_file_commits_dir)]
+modified_file_commits_files = [os.path.join(modified_file_commits_dir, f) for f in os.listdir(modified_file_commits_dir)]
+all_log_files = new_file_commits_files + modified_file_commits_files
+
+# Send the email
+send_email(SENDER_EMAIL, RECIPIENT_EMAILS, EMAIL_SUBJECT, "Please find the Bitbucket commit logs attached.", all_log_files)
+
+
+=============================
+
+Here's a simplified version of the code:
+python
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+import requests
+from datetime import datetime, timedelta
+
+# Bitbucket API credentials
+BITBUCKET_USERNAME = "your_bitbucket_username"
+BITBUCKET_PASSWORD = "your_bitbucket_password"
+
+# Bitbucket project details
+BITBUCKET_PROJECT_KEY = "your_bitbucket_project_key"
+
+# Email details
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+SENDER_EMAIL = "your_email@example.com"
+RECIPIENT_EMAILS = ["recipient1@example.com", "recipient2@example.com"]
+EMAIL_SUBJECT = "Bitbucket Commit Logs"
+
+# Date range for commits
+start_date = datetime(2023, 4, 1)
+end_date = datetime(2023, 4, 30)
+
+# Create output directories
+output_dir = "bitbucket_commits"
+os.makedirs(output_dir, exist_ok=True)
+new_file_commits_dir = os.path.join(output_dir, "new_file_commits")
+os.makedirs(new_file_commits_dir, exist_ok=True)
+modified_file_commits_dir = os.path.join(output_dir, "modified_file_commits")
+os.makedirs(modified_file_commits_dir, exist_ok=True)
+
+# Retrieve commits for all repositories in the project
+def get_project_repositories():
+    repos = []
+    page = 1
+    while True:
+        url = f"https://api.bitbucket.org/2.0/projects/{BITBUCKET_PROJECT_KEY}/repos?page={page}&pagelen=50"
+        response = requests.get(url, auth=(BITBUCKET_USERNAME, BITBUCKET_PASSWORD))
+        response.raise_for_status()
+        data = response.json()
+        repos.extend([repo["slug"] for repo in data["values"]])
+        if "next" not in data:
+            break
+        page += 1
+    return repos
+
+def get_commits_between_dates(project_key, repo_slug):
+    commits = []
+    page = 1
+    while True:
+        url = f"https://api.bitbucket.org/2.0/repositories/{project_key}/{repo_slug}/commits?page={page}&pagelen=50&since={start_date.isoformat()}&until={end_date.isoformat()}"
+        response = requests.get(url, auth=(BITBUCKET_USERNAME, BITBUCKET_PASSWORD))
+        response.raise_for_status()
+        data = response.json()
+        commits.extend(data["values"])
+        if "next" not in data:
+            break
+        page += 1
+    return commits
+
+def separate_commits(commits):
+    new_file_commits = []
+    modified_file_commits = []
+    for commit in commits:
+        new_files = [change["path"] for change in commit["changes"] if change["type"] == "add"]
+        modified_files = [change["path"] for change in commit["changes"] if change["type"] == "modify"]
+        if new_files:
+            new_file_commits.append((commit, new_files))
+        if modified_files:
+            modified_file_commits.append((commit, modified_files))
+    return new_file_commits, modified_file_commits
+
+def write_commits_to_files(repo_slug, new_file_commits, modified_file_commits):
+    new_file_commits_file = os.path.join(new_file_commits_dir, f"{repo_slug}_new_file_commits.txt")
+    with open(new_file_commits_file, "w") as f:
+        for commit, new_files in new_file_commits:
+            f.write(f"Commit: {commit['hash']}\nAuthor: {commit['author']['user']['display_name']}\nDate: {commit['date']}\nNew files:\n")
+            for file in new_files:
+                f.write(f"- {file}\n")
+            f.write("\n")
+
+    modified_file_commits_file = os.path.join(modified_file_commits_dir, f"{repo_slug}_modified_file_commits.txt")
+    with open(modified_file_commits_file, "w") as f:
+        for commit, modified_files in modified_file_commits:
+            f.write(f"Commit: {commit['hash']}\nAuthor: {commit['author']['user']['display_name']}\nDate: {commit['date']}\nModified files:\n")
+            for file in modified_files:
+                f.write(f"- {file}\n")
+            f.write("\n")
+
+def send_email(attachments):
+    msg = MIMEMultipart()
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = ", ".join(RECIPIENT_EMAILS)
+    msg["Subject"] = EMAIL_SUBJECT
+    msg.attach(MIMEText("Please find the Bitbucket commit logs attached.", "plain"))
+
+    for attachment in attachments:
+        part = MIMEBase("application", "octet-stream")
+        with open(attachment, "rb") as f:
+            part.set_payload(f.read())
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f"attachment; filename={os.path.basename(attachment)}")
+        msg.attach(part)
+
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp:
+        smtp.starttls()
+        smtp.login(SENDER_EMAIL, "your_email_password")
+        smtp.send_message(msg)
+
+project_repos = get_project_repositories()
+for repo_slug in project_repos:
+    print(f"Retrieving commits for repository: {repo_slug}")
+    commits = get_commits_between_dates(BITBUCKET_PROJECT_KEY, repo_slug)
+    new_file_commits, modified_file_commits = separate_commits(commits)
+    write_commits_to_files(repo_slug, new_file_commits, modified_file_commits)
+
+new_file_commits_files = [os.path.join(new_file_commits_dir, f) for f in os.listdir(new_file_commits_dir)]
+modified_file_commits_files = [os.path.join(modified_file_commits_dir, f) for f in os.listdir(modified_file_commits_dir)]
+all_log_files = new_file_commits_files + modified_file_commits_files
+send_email(all_log_files)
+
+The main changes are:
+Moved the repository retrieval, commit retrieval, and commit separation logic into separate functions.
+Simplified the write_commits_to_files() function by using list comprehension to extract the new and modified files.
+Simplified the send_email() function by using a single loop to attach all the log files.
+This version of the code is more concise and easier to read, while still maintaining the same functionality as the previous version.
+Note that you still need to replace the placeholders with your actual Bitbucket and email credentials.
+
