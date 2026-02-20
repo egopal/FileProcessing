@@ -1,0 +1,484 @@
+
+For API testing, if you already have a smoke test for your project, just run the following command to execute Early performance testing.
+This will help developer to execute early performance test and understand the response time behaviour of their application with load.
+
+What it does behind the scene?
+
+1) For the API, it picks up the smoke test cases
+2) Sets a default transaction count to 20
+3) Execute pytest with four parallel threads, each thread looping 5 times, and executing total of 20 transactions.
+4) Both the thread and transactions count can be changed at run time.
+5) Results can be viewed instantly after test execution.
+
+Advatages:
+1) No performance test tool that requires coding and maintanance.
+2) No scripting for performance test purposes, it repurposes existing smoke or functional test purposes.
+3) The performance test this wrapper is on top of API LCF framework
+
+How this is achived?
+The solution requires
+1) the test cases follws a standard format, and this is achieved in API Low-Code Framework.
+2) A wrapper called ept_testing is created to repurpose the existing test cases and run multiple times to generate the load with multi-thread test execution support from pytest.
+3) As part of API LCF framework, the developers need to ensure, the sql query used for test cases are not restricted to generate only one row, and the response verification is dynamic based on the input data.
+
+
+=========
+
+
+For API testing, if your project already includes a API Low‑Code Framework test suite, you can initiate Early Performance Testing (EPT) simply by running the following command. 
+This allows developers to quickly evaluate how their application performance under multi-thread and load conditions and gain early insights into application latency.
+
+### **How this works?**
+
+1. A wrapper has been created to repurpose existing test cases and execute them repeatedly using parallel threads.  
+2. It automatically detects and uses the existing API smoke test cases for EPT.  
+3. The default transaction count is set to 20.  
+4. Execution runs with four parallel threads, each looping five times, resulting in a total of 20 transactions.  
+5. Developers can customize the test case selection, number of threads, and transaction count, offering flexibility and ease of use.  
+6. Results are available immediately after the test completes.
+
+### **Advantages**
+
+1. No need for a dedicated performance‑testing tool that requires coding and separate maintenance.  
+2. No separate performance test scripts — it reuses your existing smoke or functional tests.  
+3. The performance‑testing wrapper is built on top of the API Low‑Code Framework (LCF).
+
+### **Why this approach works**
+
+1. Test cases follow a standardized structure defined by the API Low‑Code Framework.  
+2. The **`ept_testing`** wrapper repurposes these test cases and executes them multiple times to generate load.
+3. As part of the API LCF guidelines, developers ensure that SQL queries used in test cases are not limited to returning a single row and handled appropriately in response validation.
+
+If you want, I can also convert this into a README, a Confluence‑ready page, or a more formal architecture note.
+
+
+===================
+
+Here’s a sharper, more technically rigorous, performance‑engineering–oriented rewrite. I’ve tuned the language to match how senior performance testers, SREs, and platform engineers typically document load‑generation mechanisms and early‑stage performance validation.
+
+---
+
+## **Rephrased – High‑Rigor Performance Testing Version**
+
+For API testing, if your project already includes an API Low‑Code Framework (LCF)–based test suite, you can trigger Early Performance Testing (EPT) by simply executing the provided command. This enables developers to rapidly validate how their service behaves under concurrent execution and load, providing early visibility into latency characteristics and potential performance bottlenecks.
+
+### **How EPT Works**
+
+1. A dedicated wrapper orchestrates the reuse of existing LCF test cases and drives repeated execution through multi‑threaded load generation.  
+2. The framework automatically discovers and selects the API smoke test cases to be used as the baseline workload.  
+3. A default workload profile of **20 transactions** is applied.  
+4. Load execution is performed using **four parallel threads**, each iterating **five times**, resulting in a total of 20 invocations.  
+5. All key parameters — test case selection, thread count, and transaction volume — are fully configurable at runtime, enabling developers to tune load profiles as needed.  
+6. Performance results are produced immediately upon completion, supporting rapid feedback cycles.
+
+### **Advantages**
+
+1. Eliminates the need for a standalone performance‑testing tool that requires separate scripting, coding, or maintenance.  
+2. Avoids duplication of effort by reusing existing smoke or functional test assets as performance workloads.  
+3. The wrapper is built natively on top of the API Low‑Code Framework, ensuring consistency, maintainability, and alignment with existing test standards.
+
+### **Why This Approach Is Effective**
+
+1. All test cases adhere to a standardized structure enforced by the API Low‑Code Framework, making them inherently compatible with repeated execution under load.  
+2. The **`ept_testing`** wrapper leverages pytest’s multi‑threading capabilities to generate concurrent load and simulate realistic traffic patterns.  
+3. API LCF guidelines ensure that SQL queries used in test cases are not constrained to single‑row outputs and that response validation logic is dynamic, allowing the same test to be executed repeatedly with varying inputs without false failures.
+
+---
+
+If you want, I can also elevate this into a formal engineering design doc, a README, or a Confluence‑ready performance‑testing guide.
+
+
+==============================
+
+Absolutely — here is a **formal, engineering‑grade design document** version of your content. I’ve structured it in the style typically used by performance engineering teams, platform engineering groups, and architecture review boards.
+
+---
+
+# **Early Performance Testing (EPT) – Engineering Design Document**
+
+## **1. Overview**
+
+Early Performance Testing (EPT) is a lightweight, developer‑centric performance‑validation mechanism built on top of the API Low‑Code Framework (LCF). It enables teams to execute multi‑threaded load tests using their existing API test suite, without requiring dedicated performance‑testing tools or separate scripting.
+
+EPT is designed to provide rapid feedback on API latency, throughput behavior, and early performance regressions during the development lifecycle. By leveraging existing smoke/functional test cases, EPT integrates seamlessly into daily development workflows.
+
+---
+
+## **2. Objectives**
+
+EPT is engineered to achieve the following goals:
+
+- Provide **early visibility** into API performance characteristics before formal performance testing cycles.  
+- Enable developers to **simulate concurrent load** using existing test assets.  
+- Reduce the overhead of maintaining separate performance test scripts or tools.  
+- Ensure **repeatable, standardized execution** through the API Low‑Code Framework.  
+- Support **configurable load profiles** for flexible performance experimentation.
+
+---
+
+## **3. Architecture & Execution Model**
+
+### **3.1 High‑Level Flow**
+
+EPT operates by orchestrating repeated execution of existing LCF test cases under controlled concurrency. The workflow is as follows:
+
+1. **Test Case Discovery**  
+   The wrapper automatically identifies API smoke test cases defined within the LCF test suite.
+
+2. **Load Profile Initialization**  
+   A default workload of **20 transactions** is configured.
+
+3. **Concurrent Execution**  
+   EPT launches **four parallel threads**, each iterating **five times**, resulting in a total of 20 API invocations.
+
+4. **Runtime Configuration**  
+   Developers may override:  
+   - Test case selection  
+   - Number of threads  
+   - Number of transactions  
+
+5. **Result Generation**  
+   Performance metrics are produced immediately after execution, enabling rapid analysis.
+
+---
+
+## **4. Detailed Design**
+
+### **4.1 Wrapper Module (`ept_testing`)**
+
+The `ept_testing` wrapper is responsible for:
+
+- Repurposing existing LCF test cases for repeated execution  
+- Managing thread orchestration  
+- Driving multi‑iteration load generation  
+- Integrating with pytest’s concurrency mechanisms  
+- Aggregating and presenting execution results  
+
+The wrapper abstracts all performance‑testing complexity, allowing developers to focus solely on test logic.
+
+---
+
+### **4.2 API Low‑Code Framework (LCF) Integration**
+
+EPT relies on the structural guarantees provided by LCF:
+
+- **Standardized Test Case Format**  
+  Ensures consistent execution behavior across repeated iterations.
+
+- **Dynamic Response Validation**  
+  Test cases must validate responses based on input data rather than static expectations.
+
+- **SQL Query Flexibility**  
+  Queries must not be restricted to single‑row outputs, enabling repeated execution without false positives.
+
+These constraints ensure that functional test cases can be safely reused for performance workloads.
+
+---
+
+## **5. Load Execution Characteristics**
+
+| Parameter | Default Value | Description |
+|----------|---------------|-------------|
+| Threads | 4 | Number of parallel execution workers |
+| Iterations per Thread | 5 | Number of loops per thread |
+| Total Transactions | 20 | Aggregate API calls executed |
+| Test Case Source | Smoke Tests | Automatically discovered via LCF |
+| Configurable | Yes | All parameters can be overridden |
+
+This configuration provides a balanced, low‑intensity load suitable for early‑stage performance validation.
+
+---
+
+## **6. Advantages**
+
+EPT provides several engineering and operational benefits:
+
+1. **Zero Additional Scripting**  
+   No separate performance test scripts or tools are required.
+
+2. **Leverages Existing Assets**  
+   Reuses smoke/functional tests, reducing duplication and maintenance overhead.
+
+3. **Developer‑Friendly**  
+   Simple command‑based execution with immediate feedback.
+
+4. **Framework‑Aligned**  
+   Built directly on the API Low‑Code Framework for consistency and maintainability.
+
+5. **Configurable Load Profiles**  
+   Developers can tune concurrency and transaction volume as needed.
+
+---
+
+## **7. Use Cases**
+
+- Early detection of latency regressions  
+- Quick validation of API performance after code changes  
+- Lightweight load simulation during feature development  
+- Pre‑commit or pre‑merge performance checks  
+- Developer‑driven performance experimentation  
+
+---
+
+## **8. Future Enhancements (Optional Roadmap)**
+
+- Integration with CI/CD pipelines  
+- Automated trend analysis and baseline comparison  
+- Enhanced reporting (percentiles, throughput, error rates)  
+- Support for distributed load execution  
+- Configurable ramp‑up/ramp‑down profiles  
+
+---
+
+## **9. Conclusion**
+
+EPT provides a streamlined, developer‑friendly mechanism for early performance validation by leveraging the existing API Low‑Code Framework test suite. Its multi‑threaded execution model, configurability, and minimal overhead make it an effective tool for identifying performance issues early in the development lifecycle.
+
+---
+
+If you want, I can also generate:
+
+- A **README.md** version  
+- A **Confluence‑formatted** version  
+- A **system architecture diagram**  
+- A **flowchart** of the execution pipeline  
+- A **CI/CD integration guide**
+
+Just tell me what direction you want to take this next.
+
+=========================
+
+Absolutely — here is a **clean, professional, engineering‑grade system architecture diagram** for Early Performance Testing (EPT). Since I can’t render an actual image directly, I’ll provide a **diagram‑style representation** that mirrors what you would include in an architecture document, design review, or Confluence page. It’s structured so you can easily convert it into a visual diagram using tools like Draw.io, Lucidchart, Miro, or Visio.
+
+---
+
+# **Early Performance Testing (EPT) – System Architecture Diagram**
+
+Below is a **formal architecture diagram** expressed in a structured, visual layout.
+
+```
+                          ┌────────────────────────────────────────┐
+                          │        Developer / CI Pipeline         │
+                          │  (Triggers EPT via CLI Command)        │
+                          └────────────────────────────────────────┘
+                                             │
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │            EPT Wrapper (ept_testing)          │
+                     │----------------------------------------------│
+                     │ - Discovers LCF smoke test cases             │
+                     │ - Applies load profile (threads × iterations)│
+                     │ - Orchestrates pytest multi-thread execution │
+                     │ - Aggregates results                         │
+                     └──────────────────────────────────────────────┘
+                                             │
+                                             ▼
+         ┌────────────────────────────────────────────────────────────────────┐
+         │                 API Low‑Code Framework (LCF)                        │
+         │--------------------------------------------------------------------│
+         │ - Standardized test case structure                                 │
+         │ - Dynamic response validation                                      │
+         │ - SQL queries supporting multi-row outputs                         │
+         │ - Reusable functional/smoke test assets                            │
+         └────────────────────────────────────────────────────────────────────┘
+                                             │
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │                pytest Engine                  │
+                     │----------------------------------------------│
+                     │ - Executes test cases                        │
+                     │ - Manages thread workers                     │
+                     │ - Handles iteration loops                    │
+                     └──────────────────────────────────────────────┘
+                                             │
+                                             ▼
+                 ┌────────────────────────────────────────────────────┐
+                 │          Multi‑Thread Load Execution Layer         │
+                 │----------------------------------------------------│
+                 │ Thread 1 → Loop 1..N → API Calls                   │
+                 │ Thread 2 → Loop 1..N → API Calls                   │
+                 │ Thread 3 → Loop 1..N → API Calls                   │
+                 │ Thread 4 → Loop 1..N → API Calls                   │
+                 │ (Configurable threads & transactions)              │
+                 └────────────────────────────────────────────────────┘
+                                             │
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │              Target API Services              │
+                     │----------------------------------------------│
+                     │ - Application endpoints under test           │
+                     │ - Backend services                           │
+                     │ - Database / SQL queries                     │
+                     └──────────────────────────────────────────────┘
+                                             │
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │            Result Aggregation Layer           │
+                     │----------------------------------------------│
+                     │ - Response times (avg, min, max)             │
+                     │ - Success/failure counts                     │
+                     │ - Error logs                                 │
+                     │ - Immediate output to console/report         │
+                     └──────────────────────────────────────────────┘
+```
+
+---
+
+# **Architecture Summary**
+
+### **Key Components**
+| Component | Responsibility |
+|----------|----------------|
+| **Developer / CI** | Initiates EPT execution |
+| **EPT Wrapper** | Coordinates test discovery, load profile, and execution |
+| **API LCF** | Provides standardized test structure and reusable test logic |
+| **pytest Engine** | Executes tests with concurrency |
+| **Load Execution Layer** | Generates multi-threaded load |
+| **Target API Services** | Actual endpoints under performance evaluation |
+| **Result Aggregation Layer** | Produces immediate performance metrics |
+
+---
+
+# **High‑Level Data Flow**
+
+1. **Developer triggers EPT**  
+   → Wrapper loads configuration and discovers smoke tests.
+
+2. **EPT Wrapper orchestrates pytest**  
+   → Threads and iterations are initialized.
+
+3. **pytest executes LCF test cases**  
+   → Each thread repeatedly invokes API endpoints.
+
+4. **API services process requests**  
+   → Backend, DB, and business logic are exercised under load.
+
+5. **Results are aggregated**  
+   → Latency metrics and pass/fail outcomes are returned instantly.
+
+---
+
+If you want, I can also create:
+
+- A **sequence diagram**  
+- A **component diagram**  
+- A **deployment diagram**  
+- A **flowchart** of the execution pipeline  
+- A **README‑ready architecture section**
+
+Just tell me which one you want next.
+
+===============================
+
+
+Here you go, Gopal — a **clear, professional, engineering‑grade flowchart** of the Early Performance Testing (EPT) execution pipeline. I’ve structured it so it reads like a real system flow diagram and can be directly pasted into Confluence, README files, or diagramming tools like Draw.io, Lucidchart, or Miro.
+
+---
+
+# **Early Performance Testing (EPT) – Execution Pipeline Flowchart**
+
+```
+                          ┌──────────────────────────────────────┐
+                          │      Developer / CI Trigger          │
+                          │  (Runs EPT command via CLI/Script)   │
+                          └──────────────────────────────────────┘
+                                             │
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │         Load EPT Configuration                │
+                     │ - Read thread count, iterations, test set    │
+                     │ - Apply defaults if not overridden           │
+                     └──────────────────────────────────────────────┘
+                                             │
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │     Discover LCF Smoke Test Cases             │
+                     │ - Auto-detect eligible API test cases        │
+                     │ - Validate test structure (LCF-compliant)    │
+                     └──────────────────────────────────────────────┘
+                                             │
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │      Initialize EPT Wrapper (ept_testing)     │
+                     │ - Prepare test execution plan                 │
+                     │ - Configure pytest multi-threading            │
+                     └──────────────────────────────────────────────┘
+                                             │
+                                             ▼
+                 ┌────────────────────────────────────────────────────┐
+                 │            Start Multi-Thread Execution             │
+                 │----------------------------------------------------│
+                 │ For each thread (e.g., 4 threads):                 │
+                 │   → Loop N times (e.g., 5 iterations)              │
+                 │   → Invoke API test case                           │
+                 │   → Capture response + timing                      │
+                 └────────────────────────────────────────────────────┘
+                                             │
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │         Execute API Requests via LCF          │
+                     │ - SQL queries executed                        │
+                     │ - Dynamic response validation                 │
+                     │ - Backend/API services exercised under load   │
+                     └──────────────────────────────────────────────┘
+                                             │
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │        Collect & Aggregate Results            │
+                     │ - Response times (min/avg/max)                │
+                     │ - Success/failure counts                      │
+                     │ - Error logs                                  │
+                     └──────────────────────────────────────────────┘
+                                             │
+                                             ▼
+                     ┌──────────────────────────────────────────────┐
+                     │          Generate Final EPT Output            │
+                     │ - Console summary                             │
+                     │ - Optional structured report                  │
+                     │ - Immediate feedback to developer             │
+                     └──────────────────────────────────────────────┘
+```
+
+---
+
+# **Flow Summary**
+
+### **1. Developer triggers EPT**
+Runs a simple command — no special tooling required.
+
+### **2. Configuration is loaded**
+Defaults applied unless overridden (threads, transactions, test selection).
+
+### **3. LCF smoke tests are discovered**
+Only standardized, reusable tests are selected.
+
+### **4. Wrapper prepares execution**
+`ept_testing` orchestrates pytest and concurrency.
+
+### **5. Multi-threaded load is executed**
+Threads × iterations = total transactions.
+
+### **6. API endpoints are exercised**
+Backend, SQL, and validation logic run under load.
+
+### **7. Results are aggregated**
+Latency metrics, pass/fail counts, and errors.
+
+### **8. Output is returned immediately**
+Fast feedback loop for developers.
+
+---
+
+If you want, I can also produce:
+
+- A **sequence diagram**  
+- A **component diagram**  
+- A **deployment diagram**  
+- A **Swimlane diagram**  
+- A **mermaid.js version** for GitHub/Confluence  
+- A **README‑ready architecture section**
+
+Just tell me what format you want next.
+
+
+==============================================================
