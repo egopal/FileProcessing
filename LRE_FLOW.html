@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Monitoring Dashboard</title>
+    <style>
+        :root {
+            --purple: #9c27b0;
+            --yellow: #ffc107;
+            --pink: #e91e63;
+            --blue: #2196f3;
+            --red-error: #f44336;
+            --gray-inactive: #e0e0e0;
+            --green-success: #4caf50;
+            --stop-btn: #333333;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; text-align: center; }
+        
+        /* Layout */
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 30px; text-align: left;}
+        .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; max-width: 1200px; margin: 0 auto; }
+
+        .step-container { position: relative; background: white; padding: 30px 10px; border-radius: 12px; transition: all 0.3s ease; border: 2px solid transparent; }
+        .step-container.active { transform: scale(1.05); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        /* Animations */
+        @keyframes scanning { 0%, 100% { transform: translate(-50%, -50%) rotate(0deg); } 50% { transform: translate(-55%, -45%) rotate(-15deg); } }
+        @keyframes data-flow { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -60%) scale(1.1); opacity: 0.8; } }
+        @keyframes rocket-fly { 0%, 100% { transform: translate(-50%, -60%) rotate(-10deg); } 50% { transform: translate(-50%, -80%) rotate(10deg); } }
+        @keyframes smoke-emit { 0% { transform: translate(-50%, 0px) scale(0.2); opacity: 0; } 20% { transform: translate(-50%, -20px) scale(1); opacity: 0.8; } 100% { transform: translate(-50%, -60px) scale(1.5); opacity: 0; } }
+        @keyframes report-inspect { 0% { transform: translate(-20%, -20%) rotate(0deg); } 50% { transform: translate(-80%, -80%) rotate(25deg); } 100% { transform: translate(-20%, -20%) rotate(0deg); } }
+
+        .svg-box { position: relative; width: 150px; height: 150px; margin: 0 auto 20px; }
+        svg { transform: rotate(-90deg); width: 150px; height: 150px; }
+        .bg-ring { fill: none; stroke: var(--gray-inactive); stroke-width: 8; }
+        .progress-ring { fill: none; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 440; stroke-dashoffset: 440; transition: stroke-dashoffset 0.5s ease; }
+
+        .icon-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 45px; color: var(--gray-inactive); transition: color 0.3s; z-index: 5; }
+        .step-container.active .icon-overlay, .step-container.completed .icon-overlay { color: var(--active-color); }
+        
+        #step-0.active .icon-overlay { animation: scanning 1.5s infinite ease-in-out; }
+        #step-1.active .icon-overlay { animation: data-flow 1.2s infinite ease-in-out; }
+        #step-2.active .icon-overlay { animation: rocket-fly 1.2s infinite ease-in-out; }
+        #step-2.active::after { content: "💨"; font-size: 30px; position: absolute; bottom: 100px; left: 50%; transform: translate(-50%, 0); animation: smoke-emit 0.8s infinite linear; }
+        
+        .report-zoom-wrapper { position: relative; width: 60px; height: 60px; }
+        .zoom-glass { position: absolute; font-size: 26px; left: 50%; top: 50%; transform: translate(-50%, -50%); color: inherit; pointer-events: none; }
+        #step-3.active .zoom-glass { animation: report-inspect 2s infinite ease-in-out; }
+
+        /* Dropdowns */
+        .action-list {
+            position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+            background: white; border: 1px solid #ddd; width: 220px; padding: 15px;
+            border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 10; display: none; text-align: left; margin-top: 10px;
+        }
+        .step-container.active .action-list { display: block; border-top: 3px solid var(--active-color); }
+        .action-item.done { color: var(--green-success); font-weight: 500; }
+        .action-item.done::before { content: '✓'; margin-right: 8px; }
+
+        /* Summary Popup Styles */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 100; align-items: center; justify-content: center; }
+        .popup { background: white; padding: 30px; border-radius: 15px; width: 400px; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .popup h2 { margin-top: 0; color: var(--purple); display: flex; justify-content: space-between; }
+        .summary-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+        .summary-row:last-child { border-bottom: none; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        .close-btn { width: 100%; margin-top: 20px; background: var(--purple); padding: 12px; }
+
+        /* Controls */
+        .controls { margin-top: 60px; }
+        button { padding: 14px 45px; border-radius: 30px; border: none; font-weight: bold; cursor: pointer; color: white; transition: all 0.3s; min-width: 220px; font-size: 16px; }
+        .btn-start { background: var(--purple); box-shadow: 0 4px 15px rgba(156, 39, 176, 0.4); }
+        .btn-stop { background: var(--stop-btn); }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-header">
+    <div>Pipeline Status: <strong id="status-msg" style="color: var(--purple);">Ready</strong></div>
+    <div>Feb 27, 2026 | User: <strong>gopal</strong></div>
+</div>
+
+<div class="steps-grid" id="steps-grid"></div>
+
+<div class="controls">
+    <button class="btn-start" id="main-action-btn" onclick="toggleExecution()">Start Clean Run</button>
+</div>
+
+<div class="overlay" id="summary-overlay">
+    <div class="popup">
+        <h2>Run Summary 📊</h2>
+        <div id="summary-content"></div>
+        <button class="close-btn" onclick="closePopup()">Close & Reset</button>
+    </div>
+</div>
+
+<script>
+    const stepsData = [
+        { name: "Health Check", icon: "🔍", color: "#9c27b0", actions: ["System Audit", "DB Verification", "Network Check"] },
+        { name: "Scripts & Data", icon: "📂", color: "#ffc107", actions: ["Parsing CSVs", "Loading YAML", "Parameterizing"] },
+        { name: "Test Execution", icon: "🚀", color: "#e91e63", actions: ["Simulate Traffic", "Generate Events", "Post Metrics"] },
+        { name: "Test Reporting", icon: '<div class="report-zoom-wrapper">📊<span class="zoom-glass">🔍</span></div>', color: "#2196f3", actions: ["Compute Load", "Aggregate Results", "Final Report"] }
+    ];
+
+    const circumference = 440;
+    const grid = document.getElementById('steps-grid');
+    const mainBtn = document.getElementById('main-action-btn');
+    const statusLabel = document.getElementById('status-msg');
+    const summaryOverlay = document.getElementById('summary-overlay');
+    const summaryContent = document.getElementById('summary-content');
+
+    let isRunning = false;
+    let stopRequested = false;
+    let stepTimes = [];
+
+    function initUI() {
+        grid.innerHTML = '';
+        stepsData.forEach((s, i) => {
+            grid.innerHTML += `
+                <div class="step-container" id="step-${i}" style="--active-color: ${s.color}">
+                    <div class="svg-box">
+                        <svg viewBox="0 0 160 160">
+                            <circle class="bg-ring" cx="80" cy="80" r="70"></circle>
+                            <circle id="ring-${i}" class="progress-ring" cx="80" cy="80" r="70" stroke="${s.color}" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}"></circle>
+                        </svg>
+                        <div class="icon-overlay">${s.icon}</div>
+                    </div>
+                    <strong>${i === 3 ? "Test Reporting" : s.name}</strong>
+                    <div class="action-list" id="actions-${i}">
+                        ${s.actions.map(a => `<div class="action-item">${a}</div>`).join('')}
+                    </div>
+                </div>`;
+        });
+    }
+
+    async function toggleExecution() {
+        if (isRunning) {
+            stopRequested = true;
+            return;
+        }
+        
+        isRunning = true;
+        stopRequested = false;
+        stepTimes = [];
+        mainBtn.innerText = "Stop Run";
+        mainBtn.className = "btn-stop";
+        initUI();
+
+        const startTime = Date.now();
+
+        for (let i = 0; i < stepsData.length; i++) {
+            if (stopRequested) break;
+            const stepStartTime = Date.now();
+            const stepEl = document.getElementById(`step-${i}`);
+            const ring = document.getElementById(`ring-${i}`);
+            const actionItems = document.getElementById(`actions-${i}`).children;
+            
+            stepEl.classList.add('active');
+            const cleanName = i === 3 ? "Test Reporting" : stepsData[i].name;
+            statusLabel.innerText = `${cleanName} in progress...`;
+            statusLabel.style.color = stepsData[i].color;
+
+            for (let a = 0; a < stepsData[i].actions.length; a++) {
+                if (stopRequested) break;
+                await new Promise(r => setTimeout(r, 1000)); 
+                actionItems[a].classList.add('done');
+                const offset = circumference - ((a + 1) / stepsData[i].actions.length * circumference);
+                ring.style.strokeDashoffset = offset;
+            }
+            
+            stepEl.classList.remove('active');
+            if (!stopRequested) {
+                stepEl.classList.add('completed');
+                stepTimes.push({ name: cleanName, duration: ((Date.now() - stepStartTime) / 1000).toFixed(1) });
+            }
+        }
+
+        isRunning = false;
+        mainBtn.innerText = "Start Clean Run";
+        mainBtn.className = "btn-start";
+
+        if (!stopRequested) {
+            const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+            showSummary(totalTime);
+        } else {
+            statusLabel.innerText = "Process Terminated";
+            statusLabel.style.color = "var(--red-error)";
+        }
+    }
+
+    function showSummary(total) {
+        let html = '';
+        stepTimes.forEach(s => {
+            html += `<div class="summary-row"><span>${s.name}</span><span>${s.duration}s</span></div>`;
+        });
+        html += `<div class="summary-row"><span>Total Duration</span><span>${total}s</span></div>`;
+        summaryContent.innerHTML = html;
+        summaryOverlay.style.display = 'flex';
+        statusLabel.innerText = "Pipeline Successfully Finished";
+        statusLabel.style.color = "var(--green-success)";
+    }
+
+    function closePopup() {
+        summaryOverlay.style.display = 'none';
+        initUI();
+        statusLabel.innerText = "Ready";
+        statusLabel.style.color = "var(--purple)";
+    }
+
+    initUI();
+</script>
+</body>
+</html>
